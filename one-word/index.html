@@ -67,6 +67,19 @@
     cursor: pointer;
     min-height: 54px;
   }
+  .lang {
+    display: block;
+    margin: -16px 0 18px;
+    margin-inline-start: auto;
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid #D9C3B4;
+    border-radius: 999px;
+  }
   .primary { width: 100%; margin-top: 14px; color: var(--ground); background: var(--accent); }
   .primary[disabled] { opacity: 0.6; cursor: default; }
   .ghost {
@@ -117,15 +130,6 @@
 
   .note { margin-top: 26px; font-size: 14px; line-height: 1.8; color: var(--muted); }
 
-  .history { margin-top: 42px; }
-  .history h2 { font-size: 12px; font-weight: 600; color: var(--faint); margin: 0 0 14px; }
-  .row {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
-  }
-  .row .book { font-size: 14px; color: var(--muted); }
-  .row .w { font-family: 'Aref Ruqaa', Georgia, serif; font-size: 22px; font-weight: 700; color: var(--accent); }
 
   footer { margin-top: 48px; text-align: center; font-size: 12px; color: var(--faint); line-height: 1.9; }
   footer a { color: var(--ink); }
@@ -137,16 +141,18 @@
 <body>
 <div class="wrap">
 
-  <h1>كلمة واحدة</h1>
-  <p class="lede">اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.</p>
+  <button id="lang" class="lang" type="button" lang="en">English</button>
 
-  <label for="title">اسم الكتاب</label>
-  <input id="title" type="text" autocomplete="off" placeholder="مثلاً: موسم الهجرة إلى الشمال">
+  <h1 data-t="h1">كلمة واحدة</h1>
+  <p class="lede" data-t="lede">اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.</p>
+
+  <label for="title" data-t="label">اسم الكتاب</label>
+  <input id="title" type="text" dir="auto" autocomplete="off" placeholder="مثلاً: موسم الهجرة إلى الشمال">
   <button id="go" class="primary" type="button">كلمة وحدة بس</button>
 
   <div id="result" class="result hidden">
-    <div class="title" id="rTitle"></div>
-    <div class="word" id="rWord"></div>
+    <div class="title" id="rTitle" dir="auto"></div>
+    <div class="word" id="rWord" dir="auto"></div>
 
     <div class="vote" id="voteBox">
       <button id="up" type="button" aria-label="الكلمة مظبوطة">
@@ -162,22 +168,17 @@
         </svg>
       </button>
     </div>
-    <div class="voted hidden" id="voted">شكراً — بتساعدني أحسّنها.</div>
+    <div class="voted hidden" id="voted" data-t="voted">شكراً — بتساعدني أحسّنها.</div>
 
-    <button id="save" class="light" type="button">احفظ الصورة</button>
-    <button id="again" class="ghost" type="button">كتاب ثاني</button>
+    <button id="save" class="light" type="button" data-t="save">احفظ الصورة</button>
+    <button id="again" class="ghost" type="button" data-t="again">كتاب ثاني</button>
   </div>
 
   <p id="note" class="note hidden"></p>
 
-  <section class="history hidden" id="historyBox">
-    <h2>آخر الكتب</h2>
-    <div id="history"></div>
-  </section>
-
   <footer>
-    كلمة واحدة لكل كتاب<br>
-    <a href="https://instagram.com/reemiii_93">@reemiii_93</a>
+    <span data-t="tagline">كلمة واحدة لكل كتاب</span><br>
+    <a href="https://instagram.com/reemiii_93" dir="ltr">@reemiii_93</a>
   </footer>
 
 </div>
@@ -192,18 +193,95 @@
   var rTitle = document.getElementById('rTitle');
   var rWord = document.getElementById('rWord');
   var note = document.getElementById('note');
-  var historyBox = document.getElementById('historyBox');
-  var historyEl = document.getElementById('history');
+  var up = document.getElementById('up');
+  var down = document.getElementById('down');
+  var langBtn = document.getElementById('lang');
   var voteBox = document.getElementById('voteBox');
   var votedMsg = document.getElementById('voted');
   var canvas = document.getElementById('card');
 
-  // History on this device: [{ key, title, word }], oldest first. Keyed
-  // by the normalised title so "Piranesi" and "piranesi " are one entry.
+  var STRINGS = {
+    ar: {
+      docTitle: 'كلمة واحدة — The Techy Reader',
+      h1: 'كلمة واحدة',
+      lede: 'اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.',
+      label: 'اسم الكتاب',
+      placeholder: 'مثلاً: موسم الهجرة إلى الشمال',
+      go: 'كلمة وحدة بس',
+      wait: 'لحظة...',
+      up: 'الكلمة مظبوطة',
+      down: 'الكلمة مش مظبوطة',
+      voted: 'شكراً — بتساعدني أحسّنها.',
+      save: 'احفظ الصورة',
+      again: 'كتاب ثاني',
+      limit: 'خلص رصيدك لهالساعة. جرّب بعد شوي.',
+      broken: 'في مشكلة من عندي، مش منك. جرّب كمان شوي.',
+      unknown: 'ما بعرف هالكتاب لسا. ابعتلي اسمه ع الإنستغرام وبضيفه.',
+      offline: 'في مشكلة بالاتصال. جرّب كمان مرة.',
+      tagline: 'كلمة واحدة لكل كتاب'
+    },
+    en: {
+      docTitle: 'One Word — The Techy Reader',
+      h1: 'One Word',
+      lede: "Type any book title, and I'll give you back just one word.",
+      label: 'Book title',
+      placeholder: 'e.g. Piranesi',
+      go: 'Just one word',
+      wait: 'One moment...',
+      up: 'The word fits',
+      down: "The word doesn't fit",
+      voted: 'Thanks — this helps me make it better.',
+      save: 'Save image',
+      again: 'Another book',
+      limit: "You've used up your lookups for this hour. Try again in a bit.",
+      broken: "Something's wrong on my side, not yours. Try again in a bit.",
+      unknown: "I don't know this book yet. Send me its title on Instagram and I'll add it.",
+      offline: 'Connection problem. Try again.',
+      tagline: 'One word for every book'
+    }
+  };
+
+  var LANG_KEY = 'oneword:lang';
+  var lang = 'ar';
+  try { if (localStorage.getItem(LANG_KEY) === 'en') lang = 'en'; } catch (e) {}
+  var noteKey = null;
+
+  function t(key) { return STRINGS[lang][key]; }
+
+  function applyLang() {
+    var root = document.documentElement;
+    root.lang = lang;
+    root.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.title = t('docTitle');
+
+    document.querySelectorAll('[data-t]').forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-t'));
+    });
+    input.placeholder = t('placeholder');
+    up.setAttribute('aria-label', t('up'));
+    down.setAttribute('aria-label', t('down'));
+    go.textContent = go.disabled ? t('wait') : t('go');
+    if (noteKey) note.textContent = t(noteKey);
+
+    // The toggle names the language it switches to, in that language.
+    langBtn.textContent = lang === 'ar' ? 'English' : 'عربي';
+    langBtn.lang = lang === 'ar' ? 'en' : 'ar';
+  }
+
+  langBtn.addEventListener('click', function () {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyLang();
+  });
+
+  applyLang();
+
+  // Books already asked on this device: [{ key, title, word }], oldest
+  // first. Keyed by the normalised title so "Piranesi" and "piranesi "
+  // are one entry, and answered without a network request.
   var LOCAL = 'oneword:v2';
   var OLD = 'oneword:v1';
   var store = load();
-  render();
 
   // Same rules as normalise() in api/word.js. Keep the two in step.
   function normalise(title) {
@@ -253,42 +331,23 @@
     catch (e) { /* private mode — the page still works, it just forgets */ }
   }
 
-  function render() {
-    var recent = store.slice(-6).reverse();
-    if (!recent.length) { historyBox.classList.add('hidden'); return; }
-
-    historyBox.classList.remove('hidden');
-    historyEl.innerHTML = '';
-    recent.forEach(function (entry) {
-      var row = document.createElement('div');
-      row.className = 'row';
-      var b = document.createElement('div');
-      b.className = 'book';
-      b.textContent = entry.title;
-      var w = document.createElement('div');
-      w.className = 'w';
-      w.textContent = entry.word;
-      row.appendChild(b);
-      row.appendChild(w);
-      historyEl.appendChild(row);
-    });
-  }
-
   function show(title, word) {
     rTitle.textContent = title;
     rWord.textContent = word;
     result.classList.remove('hidden');
     note.classList.add('hidden');
+    noteKey = null;
 
     // A fresh result is votable again.
     voteBox.classList.remove('hidden');
     votedMsg.classList.add('hidden');
-    document.getElementById('up').disabled = false;
-    document.getElementById('down').disabled = false;
+    up.disabled = false;
+    down.disabled = false;
   }
 
-  function say(message) {
-    note.textContent = message;
+  function say(key) {
+    noteKey = key;
+    note.textContent = t(key);
     note.classList.remove('hidden');
     result.classList.add('hidden');
   }
@@ -302,13 +361,12 @@
     if (saved) {
       remember(title, saved.word);
       save();
-      render();
       show(title, saved.word);
       return;
     }
 
     go.disabled = true;
-    go.textContent = 'لحظة...';
+    go.textContent = t('wait');
 
     try {
       var res = await fetch('/api/word', {
@@ -318,39 +376,38 @@
       });
 
       if (res.status === 429) {
-        say('خلص رصيدك لهالساعة. جرّب بعد شوي.');
+        say('limit');
         return;
       }
 
       // Our side failed (API down, timeout, rejected origin). Not the
       // reader's fault, and not a verdict on the book.
       if (!res.ok) {
-        say('في مشكلة من عندي، مش منك. جرّب كمان شوي.');
+        say('broken');
         return;
       }
 
       var data = await res.json();
 
       if (!data.word) {
-        say('ما بعرف هالكتاب لسا. ابعتلي اسمه ع الإنستغرام وبضيفه.');
+        say('unknown');
         return;
       }
 
       remember(title, data.word);
       save();
-      render();
       show(title, data.word);
     } catch (e) {
-      say('في مشكلة بالاتصال. جرّب كمان مرة.');
+      say('offline');
     } finally {
       go.disabled = false;
-      go.textContent = 'كلمة وحدة بس';
+      go.textContent = t('go');
     }
   }
 
   async function vote(value) {
-    document.getElementById('up').disabled = true;
-    document.getElementById('down').disabled = true;
+    up.disabled = true;
+    down.disabled = true;
     voteBox.classList.add('hidden');
     votedMsg.classList.remove('hidden');
 
@@ -374,8 +431,8 @@
     if (e.key === 'Enter') lookup();
   });
 
-  document.getElementById('up').addEventListener('click', function () { vote(1); });
-  document.getElementById('down').addEventListener('click', function () { vote(-1); });
+  up.addEventListener('click', function () { vote(1); });
+  down.addEventListener('click', function () { vote(-1); });
 
   document.getElementById('again').addEventListener('click', function () {
     input.value = '';
@@ -390,7 +447,7 @@
     ctx.fillStyle = '#F5EDE4';
     ctx.fillRect(0, 0, 1080, 1920);
     ctx.textAlign = 'center';
-    ctx.direction = 'rtl';
+    ctx.direction = document.documentElement.dir;
 
     ctx.fillStyle = '#5A4038';
     ctx.font = '40px Cairo, sans-serif';
@@ -405,7 +462,7 @@
 
     ctx.fillStyle = '#8A6C60';
     ctx.font = '34px Cairo, sans-serif';
-    ctx.fillText('كلمة واحدة لكل كتاب', 540, 1320);
+    ctx.fillText(t('tagline'), 540, 1320);
     ctx.fillStyle = '#2B1C16';
     ctx.font = '600 36px Cairo, sans-serif';
     ctx.fillText('@reemiii_93', 540, 1380);
