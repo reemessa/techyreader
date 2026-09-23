@@ -87,12 +87,28 @@ Every model answer is written to `words`, so each book costs one API
 call for the lifetime of the tool. This ordering is the whole cost
 strategy; don't reorder it.
 
+Books the model doesn't know go to the `unknowns` table instead, and are
+answered from there (or from memory) without asking the model again.
+Each repeat ask adds 1 to `asks`, so the most-wanted missing books are:
+
+```sql
+select title, asks, last_asked from unknowns order by asks desc;
+```
+
+Adding one to `OVERRIDES` fixes it immediately, since overrides are
+checked first.
+
 **Cost controls, all four:**
 
 - the cache chain above, which is what actually saves money
 - a per-IP rate limit in the function (10 lookups/hour)
-- an origin check, so only this domain can call the API
-- a monthly spend cap set on the API key itself — the only one that
+- an origin check, which stops other websites from calling the API
+  from a visitor's browser. It does not stop scripts: a request with
+  no `Origin` header (curl, a server) passes. That's deliberate —
+  rejecting empty origins risks breaking the page itself — so the
+  rate limit and the spend cap are the real protection
+- a monthly spend limit on the Anthropic workspace that owns the key
+  (keys don't carry their own limit) — the only one that
   can't be bypassed, and the one that matters if the others fail
 
 **Votes.** Thumbs up/down writes a row to `votes` — one row per vote,

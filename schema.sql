@@ -33,3 +33,17 @@ create index if not exists votes_key_idx on votes (key);
 -- group by w.title, w.word
 -- having count(*) filter (where v.vote = -1) > 0
 -- order by down desc;
+
+-- Books the model didn't know (or answered with something that wasn't
+-- one clean word). Remembered so each one costs one call ever, and
+-- counted so you can see which ones people keep asking for.
+create table if not exists unknowns (
+  key        text primary key,
+  title      text not null,
+  asks       integer not null default 1,
+  created_at timestamptz not null default now(),
+  last_asked timestamptz not null default now()
+);
+
+-- The books to add to OVERRIDES next, most wanted first.
+-- select title, asks, last_asked from unknowns order by asks desc;

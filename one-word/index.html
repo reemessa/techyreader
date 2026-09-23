@@ -274,9 +274,16 @@
         return;
       }
 
+      // Our side failed (API down, timeout, rejected origin). Not the
+      // reader's fault, and not a verdict on the book.
+      if (!res.ok) {
+        say('في مشكلة من عندي، مش منك. جرّب كمان شوي.');
+        return;
+      }
+
       var data = await res.json();
 
-      if (!res.ok || !data.word) {
+      if (!data.word) {
         say('ما بعرف هالكتاب لسا. ابعتلي اسمه ع الإنستغرام وبضيفه.');
         return;
       }

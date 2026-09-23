@@ -1,5 +1,6 @@
 // POST /api/word  { "title": "موسم الهجرة إلى الشمال" }
 //   -> { "word": "اغتراب", "source": "mine" | "memory" | "db" | "model" }
+//   -> { "word": null, "source": "unknown" }  when the model doesn't know it
 //
 // Where an answer can come from, cheapest first:
 //   mine   - OVERRIDES below. Your words. Never costs anything.
@@ -7,8 +8,12 @@
 //   db     - the model answered it once, ever, on any instance.
 //   model  - first time anyone has asked for this book.
 //
+// Books the model couldn't answer are remembered the same way, in the
+// unknowns table, so they also cost one call ever. Each repeat ask bumps
+// a counter: that table is the list of books to add to OVERRIDES.
+//
 // Plus a rate limit per IP, an origin check, and — the only limit that
-// cannot be bypassed — the monthly spend cap set on the API key itself.
+// cannot be bypassed — the monthly spend limit on the key's workspace.
 
 import { neon } from "@neondatabase/serverless";
 
@@ -32,6 +37,7 @@ const OVERRIDES = {
   "piranesi": "متاهة",
 };
 
+// key -> word, or key -> null for a book the model didn't know.
 const memory = new Map();
 const hits = new Map();
 
@@ -66,10 +72,13 @@ function rateLimited(ip) {
 // One word, nothing else. Anything longer means the model ignored the
 // instruction, and showing nothing beats showing a sentence.
 function cleanWord(raw, arabic) {
-  const word = (raw || "")
+  const parts = (raw || "")
     .replace(/["'.،,؟?!:؛;()\[\]]/g, "")
     .trim()
-    .split(/\s+/)[0];
+    .split(/\s+/);
+
+  if (parts.length > 1) return null;
+  const word = parts[0];
 
   if (!word) return null;
   if (word.length > 20) return null;
@@ -138,6 +147,39 @@ async function store(key, title, word) {
   }
 }
 
+// Returns true if the book is a known unknown, and counts the ask.
+async function bumpUnknown(key) {
+  try {
+    const rows = await sql`
+      update unknowns set asks = asks + 1, last_asked = now()
+      where key = ${key}
+      returning key
+    `;
+    return rows.length > 0;
+  } catch (error) {
+    console.error("[word] db unknown read failed:", error.message);
+    return false;
+  }
+}
+
+async function storeUnknown(key, title) {
+  try {
+    await sql`
+      insert into unknowns (key, title)
+      values (${key}, ${title})
+      on conflict (key) do update
+        set asks = unknowns.asks + 1, last_asked = now()
+    `;
+  } catch (error) {
+    console.error("[word] db unknown write failed:", error.message);
+  }
+}
+
+function unknown(res, title, source) {
+  console.log(`[word] "${title}" -> unknown (${source})`);
+  return res.status(200).json({ word: null, source: "unknown" });
+}
+
 function answer(res, title, word, source) {
   console.log(`[word] "${title}" -> ${word} (${source})`);
   return res.status(200).json({ word, source });
@@ -161,12 +203,22 @@ export default async function handler(req, res) {
   const key = normalise(title);
 
   if (OVERRIDES[key]) return answer(res, title, OVERRIDES[key], "mine");
-  if (memory.has(key)) return answer(res, title, memory.get(key), "memory");
+  if (memory.has(key)) {
+    const remembered = memory.get(key);
+    if (remembered) return answer(res, title, remembered, "memory");
+    await bumpUnknown(key);
+    return unknown(res, title, "memory");
+  }
 
   const stored = await readStored(key);
   if (stored) {
     memory.set(key, stored);
     return answer(res, title, stored, "db");
+  }
+
+  if (await bumpUnknown(key)) {
+    memory.set(key, null);
+    return unknown(res, title, "db");
   }
 
   const ip =
@@ -178,9 +230,12 @@ export default async function handler(req, res) {
 
   try {
     const word = await askModel(title, isArabic(title));
+    // Covers both UNKNOWN and an answer cleanWord threw away: either
+    // way, asking again would most likely get the same thing back.
     if (!word) {
-      console.log(`[word] "${title}" -> unknown`);
-      return res.status(200).json({ word: null, source: "unknown" });
+      memory.set(key, null);
+      await storeUnknown(key, title);
+      return unknown(res, title, "model");
     }
 
     memory.set(key, word);
