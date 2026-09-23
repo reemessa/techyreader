@@ -147,7 +147,7 @@
   <p class="lede" data-t="lede">اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.</p>
 
   <label for="title" data-t="label">اسم الكتاب</label>
-  <input id="title" type="text" dir="auto" autocomplete="off" placeholder="مثلاً: موسم الهجرة إلى الشمال">
+  <input id="title" type="text" dir="auto" autocomplete="off">
   <button id="go" class="primary" type="button">كلمة وحدة بس</button>
 
   <div id="result" class="result hidden">
@@ -206,7 +206,6 @@
       h1: 'كلمة واحدة',
       lede: 'اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.',
       label: 'اسم الكتاب',
-      placeholder: 'مثلاً: موسم الهجرة إلى الشمال',
       go: 'كلمة وحدة بس',
       wait: 'لحظة...',
       up: 'الكلمة مظبوطة',
@@ -225,7 +224,6 @@
       h1: 'One Word',
       lede: "Type any book title, and I'll give you back just one word.",
       label: 'Book title',
-      placeholder: 'e.g. Piranesi',
       go: 'Just one word',
       wait: 'One moment...',
       up: 'The word fits',
@@ -257,7 +255,6 @@
     document.querySelectorAll('[data-t]').forEach(function (el) {
       el.textContent = t(el.getAttribute('data-t'));
     });
-    input.placeholder = t('placeholder');
     up.setAttribute('aria-label', t('up'));
     down.setAttribute('aria-label', t('down'));
     go.textContent = go.disabled ? t('wait') : t('go');
