@@ -1,12 +1,18 @@
-// POST /api/word  { "title": "موسم الهجرة إلى الشمال" }  ->  { "word": "اغتراب", "source": "model" }
+// POST /api/word  { "title": "موسم الهجرة إلى الشمال" }
+//   -> { "word": "اغتراب", "source": "mine" | "memory" | "db" | "model" }
 //
-// Cost controls, in order of how much they save you:
-//   1. OVERRIDES  - books you answered yourself. Never costs anything.
-//   2. cache      - one model call per title, ever (per warm instance).
-//   3. rateLimit  - 10 lookups per IP per hour.
-//   4. origin     - only your own site may call this.
-// Plus: set a monthly spend cap on the API key itself. That is the only
-// limit that cannot be bypassed, so do not skip it.
+// Where an answer can come from, cheapest first:
+//   mine   - OVERRIDES below. Your words. Never costs anything.
+//   memory - this warm instance already answered it.
+//   db     - the model answered it once, ever, on any instance.
+//   model  - first time anyone has asked for this book.
+//
+// Plus a rate limit per IP, an origin check, and — the only limit that
+// cannot be bypassed — the monthly spend cap set on the API key itself.
+
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.DATABASE_URL);
 
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_PER_HOUR = 10;
@@ -17,22 +23,19 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
 ];
 
-// Your words. These are checked first, so the books in your reel always
-// return exactly what you chose — no model, no surprises on camera.
+// Your words. Checked before anything else, so the books in your reel
+// always return exactly what you chose.
 const OVERRIDES = {
-  "موسم الهجرة إلى الشمال": "اغتراب",
+  "موسم الهجره الى الشمال": "اغتراب",
   "ساق البامبو": "انتماء",
   "مدن الملح": "اقتلاع",
   "piranesi": "متاهة",
 };
 
-// Module scope: survives between invocations while the instance stays warm,
-// and empties when it cools. Good enough to kill most repeat calls. If the
-// tool takes off, swap this for Vercel KV so the cache is shared and permanent.
-const cache = new Map();
+const memory = new Map();
 const hits = new Map();
 
-function normalise(title) {
+export function normalise(title) {
   return title
     .trim()
     .toLowerCase()
@@ -60,8 +63,8 @@ function rateLimited(ip) {
   return false;
 }
 
-// One word, nothing else. Anything longer is the model ignoring instructions,
-// and we'd rather show nothing than show a sentence.
+// One word, nothing else. Anything longer means the model ignored the
+// instruction, and showing nothing beats showing a sentence.
 function cleanWord(raw, arabic) {
   const word = (raw || "")
     .replace(/["'.،,؟?!:؛;()\[\]]/g, "")
@@ -111,6 +114,35 @@ async function askModel(title, arabic) {
   return cleanWord(text, arabic);
 }
 
+// The database is a cache, not the tool. If it is down, the tool still
+// answers — it just pays the model again next time.
+async function readStored(key) {
+  try {
+    const rows = await sql`select word from words where key = ${key}`;
+    return rows.length ? rows[0].word : null;
+  } catch (error) {
+    console.error("[word] db read failed:", error.message);
+    return null;
+  }
+}
+
+async function store(key, title, word) {
+  try {
+    await sql`
+      insert into words (key, title, word)
+      values (${key}, ${title}, ${word})
+      on conflict (key) do nothing
+    `;
+  } catch (error) {
+    console.error("[word] db write failed:", error.message);
+  }
+}
+
+function answer(res, title, word, source) {
+  console.log(`[word] "${title}" -> ${word} (${source})`);
+  return res.status(200).json({ word, source });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "method_not_allowed" });
@@ -128,28 +160,34 @@ export default async function handler(req, res) {
 
   const key = normalise(title);
 
-  if (OVERRIDES[key]) {
-    return res.status(200).json({ word: OVERRIDES[key], source: "mine" });
-  }
-  if (cache.has(key)) {
-    return res.status(200).json({ word: cache.get(key), source: "cache" });
+  if (OVERRIDES[key]) return answer(res, title, OVERRIDES[key], "mine");
+  if (memory.has(key)) return answer(res, title, memory.get(key), "memory");
+
+  const stored = await readStored(key);
+  if (stored) {
+    memory.set(key, stored);
+    return answer(res, title, stored, "db");
   }
 
   const ip =
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
   if (rateLimited(ip)) {
+    console.log(`[word] rate limited ${ip}`);
     return res.status(429).json({ error: "rate_limited" });
   }
 
   try {
     const word = await askModel(title, isArabic(title));
     if (!word) {
+      console.log(`[word] "${title}" -> unknown`);
       return res.status(200).json({ word: null, source: "unknown" });
     }
-    cache.set(key, word);
-    return res.status(200).json({ word, source: "model" });
+
+    memory.set(key, word);
+    await store(key, title, word);
+    return answer(res, title, word, "model");
   } catch (error) {
-    console.error("word lookup failed:", error.message);
+    console.error(`[word] lookup failed for "${title}":`, error.message);
     return res.status(502).json({ error: "upstream" });
   }
 }
