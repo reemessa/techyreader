@@ -3,9 +3,13 @@
 // One row per vote. No totals kept, because the interesting question is
 // not "how many liked it" but "which words did people reject" — and that
 // only survives if the rows do.
+//
+// A vote is only kept if the word is what the tool actually gives for
+// that book (your override, or the stored model answer), so every row
+// in votes is about a real answer.
 
 import { neon } from "@neondatabase/serverless";
-import { normalise } from "./word.js";
+import { normalise, OVERRIDES } from "./word.js";
 
 const sql = neon(process.env.DATABASE_URL);
 
@@ -58,10 +62,21 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "rate_limited" });
   }
 
+  const key = normalise(title);
+
   try {
+    const expected =
+      OVERRIDES[key] ??
+      (await sql`select word from words where key = ${key}`)[0]?.word;
+
+    if (expected !== word) {
+      console.log(`[vote] rejected "${title}" / ${word}: not our answer`);
+      return res.status(400).json({ error: "bad_vote" });
+    }
+
     await sql`
       insert into votes (key, title, word, vote)
-      values (${normalise(title)}, ${title}, ${word}, ${vote})
+      values (${key}, ${title}, ${word}, ${vote})
     `;
     console.log(`[vote] "${title}" / ${word} -> ${vote > 0 ? "up" : "down"}`);
     return res.status(200).json({ ok: true });

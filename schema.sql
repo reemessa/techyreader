@@ -26,12 +26,12 @@ create table if not exists votes (
 create index if not exists votes_key_idx on votes (key);
 
 -- The words people liked least — your list of what to fix by hand.
--- select w.title, w.word,
---        count(*) filter (where v.vote = 1)  as up,
---        count(*) filter (where v.vote = -1) as down
--- from words w join votes v on v.key = w.key
--- group by w.title, w.word
--- having count(*) filter (where v.vote = -1) > 0
+-- select min(title) as title, word,
+--        count(*) filter (where vote = 1)  as up,
+--        count(*) filter (where vote = -1) as down
+-- from votes
+-- group by key, word
+-- having count(*) filter (where vote = -1) > 0
 -- order by down desc;
 
 -- Books the model didn't know (or answered with something that wasn't

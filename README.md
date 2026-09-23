@@ -116,17 +116,20 @@ not a running total, because the useful question is *which words did
 people reject*. That list is what should move into `OVERRIDES`:
 
 ```sql
-select w.title, w.word,
-       count(*) filter (where v.vote = 1)  as up,
-       count(*) filter (where v.vote = -1) as down
-from words w join votes v on v.key = w.key
-group by w.title, w.word
-having count(*) filter (where v.vote = -1) > 0
+select min(title) as title, word,
+       count(*) filter (where vote = 1)  as up,
+       count(*) filter (where vote = -1) as down
+from votes
+group by key, word
+having count(*) filter (where vote = -1) > 0
 order by down desc;
 ```
 
-There's no check against one person voting repeatedly. Fine as a signal,
-useless as a poll — don't read the counts as one.
+A vote is only saved if its word is what the tool actually gives for
+that book (the override, or the stored model answer), so the list covers
+override books too. There's no check against one person voting
+repeatedly. Fine as a signal, useless as a poll — don't read the counts
+as one.
 
 **Known weakness.** Arabic classics get vaguer words than English
 contemporary fiction, and a misspelled Arabic title fails outright. The

@@ -30,7 +30,7 @@ const ALLOWED_ORIGINS = [
 
 // Your words. Checked before anything else, so the books in your reel
 // always return exactly what you chose.
-const OVERRIDES = {
+export const OVERRIDES = {
   "موسم الهجره الى الشمال": "اغتراب",
   "ساق البامبو": "انتماء",
   "مدن الملح": "اقتلاع",
