@@ -198,13 +198,54 @@
   var votedMsg = document.getElementById('voted');
   var canvas = document.getElementById('card');
 
-  var LOCAL = 'oneword:v1';
+  // History on this device: [{ key, title, word }], oldest first. Keyed
+  // by the normalised title so "Piranesi" and "piranesi " are one entry.
+  var LOCAL = 'oneword:v2';
+  var OLD = 'oneword:v1';
   var store = load();
   render();
 
+  // Same rules as normalise() in api/word.js. Keep the two in step.
+  function normalise(title) {
+    return title
+      .trim()
+      .toLowerCase()
+      .replace(/[\u064B-\u0652]/g, '')
+      .replace(/[أإآ]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ');
+  }
+
   function load() {
-    try { return JSON.parse(localStorage.getItem(LOCAL)) || {}; }
-    catch (e) { return {}; }
+    try {
+      var saved = JSON.parse(localStorage.getItem(LOCAL));
+      if (Array.isArray(saved)) return saved;
+    } catch (e) {}
+
+    // First visit since v2: carry over the old { title: word } history,
+    // merging titles that only differed in case or spacing.
+    store = [];
+    try {
+      var old = JSON.parse(localStorage.getItem(OLD)) || {};
+      Object.keys(old).forEach(function (title) { remember(title.trim(), old[title]); });
+      save();
+      localStorage.removeItem(OLD);
+    } catch (e) {}
+    return store;
+  }
+
+  function find(key) {
+    for (var i = 0; i < store.length; i++) {
+      if (store[i].key === key) return store[i];
+    }
+    return null;
+  }
+
+  // Adds or refreshes an entry and moves it to the end (most recent).
+  function remember(title, word) {
+    var key = normalise(title);
+    store = store.filter(function (entry) { return entry.key !== key; });
+    store.push({ key: key, title: title, word: word });
   }
 
   function save() {
@@ -213,20 +254,20 @@
   }
 
   function render() {
-    var keys = Object.keys(store).slice(-6).reverse();
-    if (!keys.length) { historyBox.classList.add('hidden'); return; }
+    var recent = store.slice(-6).reverse();
+    if (!recent.length) { historyBox.classList.add('hidden'); return; }
 
     historyBox.classList.remove('hidden');
     historyEl.innerHTML = '';
-    keys.forEach(function (title) {
+    recent.forEach(function (entry) {
       var row = document.createElement('div');
       row.className = 'row';
       var b = document.createElement('div');
       b.className = 'book';
-      b.textContent = title;
+      b.textContent = entry.title;
       var w = document.createElement('div');
       w.className = 'w';
-      w.textContent = store[title];
+      w.textContent = entry.word;
       row.appendChild(b);
       row.appendChild(w);
       historyEl.appendChild(row);
@@ -257,7 +298,14 @@
     if (!title) { input.focus(); return; }
 
     // Already asked on this device: never hits the network.
-    if (store[title]) { show(title, store[title]); return; }
+    var saved = find(normalise(title));
+    if (saved) {
+      remember(title, saved.word);
+      save();
+      render();
+      show(title, saved.word);
+      return;
+    }
 
     go.disabled = true;
     go.textContent = 'لحظة...';
@@ -288,7 +336,7 @@
         return;
       }
 
-      store[title] = data.word;
+      remember(title, data.word);
       save();
       render();
       show(title, data.word);
