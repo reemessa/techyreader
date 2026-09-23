@@ -1,1 +1,136 @@
-# techyreader
+# thetechyreader.com
+
+Small tools for readers. One folder per tool, all served from the same
+domain.
+
+Live at [thetechyreader.com](https://thetechyreader.com), deployed from
+`main` on every push.
+
+---
+
+## Layout
+
+```
+/<tool-name>/index.html   the tool's page — one self-contained file
+/api/*.js                 Vercel serverless functions
+/schema.sql               the Postgres tables
+/package.json             dependencies (shared across all tools)
+```
+
+A new tool is a new folder. `one-word/index.html` is served at
+`/one-word` with no configuration — Vercel maps the path for you.
+
+---
+
+## Conventions
+
+These are the rules the whole site follows. Breaking one should be a
+deliberate decision, not an accident.
+
+**Static page plus a function.** A tool is one HTML file and, if it
+needs a secret or a database, one function under `/api`. No per-tool
+backend, no build step, no framework. This keeps every tool deployable
+in under a minute and debuggable by reading one file.
+
+**Arabic-first.** `dir="rtl"`, Arabic copy, and Arabic titles treated as
+the normal case rather than the edge case. Aref Ruqaa for display, Cairo
+for UI.
+
+**The palette, everywhere:**
+
+| | |
+|---|---|
+| ground | `#F5EDE4` |
+| card | `#FFFCF8` |
+| ink | `#2B1C16` |
+| muted | `#5A4038` |
+| accent | `#9C4A2F` |
+
+Light only. No dark mode — the tools should look like the Instagram
+account, which is warm and light.
+
+**Secrets live in Vercel, never in the repo.** The repo is public.
+`ANTHROPIC_API_KEY` and `DATABASE_URL` are environment variables set in
+the Vercel dashboard.
+
+---
+
+## Infrastructure
+
+| | |
+|---|---|
+| Domain | Porkbun (A record → Vercel) |
+| Hosting | Vercel, project `techyreader` |
+| Database | Neon Postgres, via the Vercel Marketplace integration |
+| Model | Anthropic API, Haiku |
+
+The database is shared by all tools. Give each tool its own tables
+rather than a separate database.
+
+---
+
+## The tools
+
+### `/one-word`
+
+Type a book title, get back one word.
+
+**Where an answer comes from, cheapest first:**
+
+1. `OVERRIDES` in `api/word.js` — words chosen by hand. Free, and always
+   the same, which matters when a book is going to appear in a reel.
+2. In-memory cache — this warm function instance already answered it.
+3. The `words` table — the model answered it once, on any instance, ever.
+4. The model — first time anyone has asked for this book.
+
+Every model answer is written to `words`, so each book costs one API
+call for the lifetime of the tool. This ordering is the whole cost
+strategy; don't reorder it.
+
+**Cost controls, all four:**
+
+- the cache chain above, which is what actually saves money
+- a per-IP rate limit in the function (10 lookups/hour)
+- an origin check, so only this domain can call the API
+- a monthly spend cap set on the API key itself — the only one that
+  can't be bypassed, and the one that matters if the others fail
+
+**Votes.** Thumbs up/down writes a row to `votes` — one row per vote,
+not a running total, because the useful question is *which words did
+people reject*. That list is what should move into `OVERRIDES`:
+
+```sql
+select w.title, w.word,
+       count(*) filter (where v.vote = 1)  as up,
+       count(*) filter (where v.vote = -1) as down
+from words w join votes v on v.key = w.key
+group by w.title, w.word
+having count(*) filter (where v.vote = -1) > 0
+order by down desc;
+```
+
+There's no check against one person voting repeatedly. Fine as a signal,
+useless as a poll — don't read the counts as one.
+
+**Known weakness.** Arabic classics get vaguer words than English
+contemporary fiction, and a misspelled Arabic title fails outright. The
+normaliser strips diacritics and unifies أ/إ/آ and ة/ه, but it can't fix
+a wrong letter. If this keeps happening, the fix is to accept an author
+name alongside the title and pass both to the model.
+
+---
+
+## Working on this
+
+Read the file before changing it. Each tool page is self-contained on
+purpose — the duplication between tools is intentional, and it's cheaper
+than a shared stylesheet that every tool has to stay compatible with.
+
+Deploys are automatic on push to `main`. Check the Vercel logs after a
+change to `/api`: every lookup logs its source.
+
+```
+[word] "Daughter of smoke and bone" -> yearning (model)
+[word] "Daughter of smoke and bone" -> yearning (db)
+[vote] "Daughter of smoke and bone" / yearning -> up
+```
