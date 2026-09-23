@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>كلمة واحدة — The Techy Reader</title>
+<meta name="description" content="اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --ground: #F5EDE4;
+    --card: #FFFCF8;
+    --ink: #2B1C16;
+    --muted: #5A4038;
+    --faint: #8A6C60;
+    --line: #E6D5C8;
+    --accent: #9C4A2F;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Cairo', system-ui, sans-serif;
+    min-height: 100%;
+  }
+
+  .wrap { max-width: 520px; margin: 0 auto; padding: 40px 22px 64px; }
+
+  h1 {
+    font-family: 'Aref Ruqaa', Georgia, serif;
+    font-size: clamp(30px, 9vw, 40px);
+    color: var(--accent);
+    margin: 0 0 10px;
+    line-height: 1.3;
+  }
+  .lede { margin: 0 0 30px; font-size: 15px; line-height: 1.8; color: var(--muted); }
+
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+  input[type="text"] {
+    width: 100%;
+    height: 54px;
+    padding: 0 16px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid #D9C3B4;
+    border-radius: 12px;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  button {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    min-height: 54px;
+  }
+  .primary { width: 100%; margin-top: 14px; color: var(--ground); background: var(--accent); }
+  .primary[disabled] { opacity: 0.6; cursor: default; }
+  .ghost {
+    width: 100%;
+    margin-top: 10px;
+    font-weight: 600;
+    color: var(--ground);
+    background: transparent;
+    border: 1px solid rgba(245,237,228,0.55);
+  }
+  .light { color: var(--accent); background: var(--ground); }
+
+  .result {
+    margin-top: 34px;
+    padding: 34px 24px 26px;
+    border-radius: 18px;
+    background: var(--accent);
+    color: var(--ground);
+    text-align: center;
+  }
+  .result .title { font-size: 14px; opacity: 0.85; margin-bottom: 26px; }
+  .result .word {
+    font-family: 'Aref Ruqaa', Georgia, serif;
+    font-size: clamp(52px, 17vw, 76px);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 30px;
+    word-break: break-word;
+  }
+
+  .note { margin-top: 26px; font-size: 14px; line-height: 1.8; color: var(--muted); }
+
+  .history { margin-top: 42px; }
+  .history h2 { font-size: 12px; font-weight: 600; color: var(--faint); margin: 0 0 14px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .row .book { font-size: 14px; color: var(--muted); }
+  .row .w { font-family: 'Aref Ruqaa', Georgia, serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+
+  footer { margin-top: 48px; text-align: center; font-size: 12px; color: var(--faint); line-height: 1.9; }
+  footer a { color: var(--ink); }
+
+  .hidden { display: none; }
+  canvas { display: none; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #1A1512; --card: #241C18; --ink: #F2E8E0;
+      --muted: #C6B2A6; --faint: #9C877A; --line: #3A2C25;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>كلمة واحدة</h1>
+  <p class="lede">اكتب اسم أي كتاب، وبرجعلك كلمة واحدة بس.</p>
+
+  <label for="title">اسم الكتاب</label>
+  <input id="title" type="text" autocomplete="off" placeholder="مثلاً: موسم الهجرة إلى الشمال">
+  <button id="go" class="primary" type="button">كلمة وحدة بس</button>
+
+  <div id="result" class="result hidden">
+    <div class="title" id="rTitle"></div>
+    <div class="word" id="rWord"></div>
+    <button id="save" class="light" type="button" style="width:100%">احفظ الصورة</button>
+    <button id="again" class="ghost" type="button">كتاب ثاني</button>
+  </div>
+
+  <p id="note" class="note hidden"></p>
+
+  <section class="history hidden" id="historyBox">
+    <h2>آخر الكتب</h2>
+    <div id="history"></div>
+  </section>
+
+  <footer>
+    كلمة واحدة لكل كتاب<br>
+    <a href="https://instagram.com/reemiii_93">@reemiii_93</a>
+  </footer>
+
+</div>
+
+<canvas id="card" width="1080" height="1920"></canvas>
+
+<script>
+(function () {
+  var input = document.getElementById('title');
+  var go = document.getElementById('go');
+  var result = document.getElementById('result');
+  var rTitle = document.getElementById('rTitle');
+  var rWord = document.getElementById('rWord');
+  var note = document.getElementById('note');
+  var historyBox = document.getElementById('historyBox');
+  var historyEl = document.getElementById('history');
+  var canvas = document.getElementById('card');
+
+  var LOCAL = 'oneword:v1';
+  var store = load();
+  render();
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(LOCAL)) || {}; }
+    catch (e) { return {}; }
+  }
+
+  function save() {
+    try { localStorage.setItem(LOCAL, JSON.stringify(store)); }
+    catch (e) { /* private mode — the page still works, it just forgets */ }
+  }
+
+  function render() {
+    var keys = Object.keys(store).slice(-6).reverse();
+    if (!keys.length) { historyBox.classList.add('hidden'); return; }
+
+    historyBox.classList.remove('hidden');
+    historyEl.innerHTML = '';
+    keys.forEach(function (title) {
+      var row = document.createElement('div');
+      row.className = 'row';
+      var b = document.createElement('div');
+      b.className = 'book';
+      b.textContent = title;
+      var w = document.createElement('div');
+      w.className = 'w';
+      w.textContent = store[title];
+      row.appendChild(b);
+      row.appendChild(w);
+      historyEl.appendChild(row);
+    });
+  }
+
+  function show(title, word) {
+    rTitle.textContent = title;
+    rWord.textContent = word;
+    result.classList.remove('hidden');
+    note.classList.add('hidden');
+  }
+
+  function say(message) {
+    note.textContent = message;
+    note.classList.remove('hidden');
+    result.classList.add('hidden');
+  }
+
+  async function lookup() {
+    var title = input.value.trim();
+    if (!title) { input.focus(); return; }
+
+    // Already asked on this device: never hits the network.
+    if (store[title]) { show(title, store[title]); return; }
+
+    go.disabled = true;
+    go.textContent = 'لحظة...';
+
+    try {
+      var res = await fetch('/api/word', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ title: title })
+      });
+
+      if (res.status === 429) {
+        say('خلص رصيدك لهالساعة. جرّب بعد شوي.');
+        return;
+      }
+
+      var data = await res.json();
+
+      if (!res.ok || !data.word) {
+        say('ما بعرف هالكتاب لسا. ابعتلي اسمه ع الإنستغرام وبضيفه.');
+        return;
+      }
+
+      store[title] = data.word;
+      save();
+      render();
+      show(title, data.word);
+    } catch (e) {
+      say('في مشكلة بالاتصال. جرّب كمان مرة.');
+    } finally {
+      go.disabled = false;
+      go.textContent = 'كلمة وحدة بس';
+    }
+  }
+
+  go.addEventListener('click', lookup);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') lookup();
+  });
+
+  document.getElementById('again').addEventListener('click', function () {
+    input.value = '';
+    result.classList.add('hidden');
+    input.focus();
+  });
+
+  document.getElementById('save').addEventListener('click', async function () {
+    var ctx = canvas.getContext('2d');
+    try { await document.fonts.ready; } catch (e) {}
+
+    ctx.fillStyle = '#F5EDE4';
+    ctx.fillRect(0, 0, 1080, 1920);
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+
+    ctx.fillStyle = '#5A4038';
+    ctx.font = '40px Cairo, sans-serif';
+    ctx.fillText(rTitle.textContent, 540, 760, 900);
+
+    ctx.fillStyle = '#D9C3B4';
+    ctx.fillRect(516, 830, 48, 4);
+
+    ctx.fillStyle = '#9C4A2F';
+    ctx.font = '700 190px "Aref Ruqaa", serif';
+    ctx.fillText(rWord.textContent, 540, 1040, 940);
+
+    ctx.fillStyle = '#8A6C60';
+    ctx.font = '34px Cairo, sans-serif';
+    ctx.fillText('كلمة واحدة لكل كتاب', 540, 1320);
+    ctx.fillStyle = '#2B1C16';
+    ctx.font = '600 36px Cairo, sans-serif';
+    ctx.fillText('@reemiii_93', 540, 1380);
+
+    var link = document.createElement('a');
+    link.download = 'one-word.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+})();
+</script>
+</body>
+</html>
