@@ -38,7 +38,8 @@ each tool works). Read it before changing anything.
 - If you change `normalise()` in `api/word.js`, change the copy in
   `one-word/index.html` too.
 - The publisher list is copied in `publisher-wheel/index.html` and
-  `publishers/index.html`. Change both.
+  `publishers/index.html`. Change both. The `/publishers` copy also has
+  each publisher's country code, for the flag.
 - `/publishers` works offline through `publishers-sw.js` at the repo root.
   Readers see a changed page one visit late, so bump `VERSION` in that
   file whenever a change must reach them.
