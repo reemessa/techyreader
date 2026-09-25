@@ -51,6 +51,12 @@ for UI.
 Deep green for headings and the big surfaces, gold for the main
 buttons. Light only, no dark mode.
 
+**Visits are counted with Vercel Web Analytics** (the project's
+Analytics tab). Every page carries the two script lines just before
+`</head>`; a page without them isn't counted. No cookies. Visits served
+from `/publishers`' offline copy with no signal never reach Vercel, so
+fair-day numbers run low.
+
 **Secrets live in Vercel, never in the repo.** The repo is public.
 `ANTHROPIC_API_KEY` and `DATABASE_URL` are environment variables set in
 the Vercel dashboard.
