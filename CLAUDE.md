@@ -30,7 +30,8 @@ each tool works). Read it before changing anything.
   Cairo for UI. One-word also has an English toggle. The publisher wheel
   is Arabic only.
 - **The site palette, light only.** No dark mode. The colours are listed in
-  README.md.
+  README.md. The one exception is `/publisher-wheel`, which has its own
+  green and gold palette on purpose.
 - **Secrets stay in Vercel.** The repo is public.
 - **Don't reorder the lookup chain in `api/word.js`.** It's the whole cost
   strategy (overrides → memory → db → model).

@@ -10,13 +10,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700&display=swap">
 <style>
   :root {
-    --ground: #F5EDE4;
-    --card: #FFFCF8;
-    --ink: #2B1C16;
-    --muted: #5A4038;
-    --faint: #8A6C60;
-    --line: #E6D5C8;
-    --accent: #9C4A2F;
+    /* This tool's own palette: deep green, green and gold. */
+    --ground: #F5F5F4;
+    --ink: #201F1D;
+    --muted: #666560;
+    --faint: #8C8B85;
+    --forest: #0F3A2B;
+    --green: #167B54;
+    --gold: #C79A3E;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -37,7 +38,7 @@
   h1 {
     font-family: 'Aref Ruqaa', Georgia, serif;
     font-size: clamp(30px, 9vw, 40px);
-    color: var(--accent);
+    color: var(--forest);
     margin: 0 0 10px;
     line-height: 1.3;
   }
@@ -50,7 +51,7 @@
     height: 232px;
     overflow: hidden;
     direction: ltr;
-    background: linear-gradient(#EFE3D7, #E8D8C9);
+    background: var(--forest);
     border-radius: 12px;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
             mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
@@ -76,8 +77,8 @@
     overflow: hidden;
     border-radius: 3px 3px 1px 1px;
     background-image:
-      linear-gradient(to bottom, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px),
-      linear-gradient(to top, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px);
+      linear-gradient(to bottom, transparent 9px, rgba(255,255,255,.4) 9px, rgba(255,255,255,.4) 11px, transparent 11px),
+      linear-gradient(to top, transparent 9px, rgba(255,255,255,.4) 9px, rgba(255,255,255,.4) 11px, transparent 11px);
     transition: transform .35s ease;
   }
   /* Long names stop short of the gilt bands and end in "…"; the full
@@ -91,7 +92,7 @@
     text-overflow: ellipsis;
   }
   .spine.hit { transform: translateY(-14px); }
-  .plank { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: var(--muted); }
+  .plank { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: #0A2A1F; border-top: 2px solid var(--gold); }
   .marker {
     position: absolute;
     top: 0;
@@ -101,7 +102,7 @@
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 16px solid var(--ink);
+    border-top: 16px solid var(--gold);
     z-index: 2;
   }
 
@@ -112,8 +113,8 @@
     font-family: inherit;
     font-size: 16px;
     font-weight: 700;
-    color: var(--ground);
-    background: var(--accent);
+    color: var(--forest);
+    background: var(--gold);
     border: none;
     border-radius: 12px;
     cursor: pointer;
@@ -131,9 +132,9 @@
     color: var(--ink);
     word-break: break-word;
   }
-  .result .name.pending { color: #D9C3B4; }
+  .result .name.pending { color: #D6D4CE; }
   .result .booth { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--muted); }
-  .result .booth b { color: var(--accent); font-size: 18px; }
+  .result .booth b { color: var(--green); font-size: 18px; }
 
   footer { margin-top: 48px; font-size: 12px; color: var(--faint); line-height: 1.9; }
   footer a { color: var(--ink); }
@@ -353,9 +354,9 @@
 
   // Cloth-spine colours, each with the text colour that reads on it.
   var COLOURS = [
-    ['#9C4A2F', '#F5EDE4'], ['#5A4038', '#F5EDE4'], ['#B98B63', '#2B1C16'],
-    ['#6F7A5E', '#F5EDE4'], ['#2B1C16', '#F5EDE4'], ['#C7A48A', '#2B1C16'],
-    ['#7D3B26', '#F5EDE4'], ['#8A6C60', '#F5EDE4']
+    ['#167B54', '#FFFFFF'], ['#3E7D6E', '#FFFFFF'], ['#D9694A', '#201F1D'],
+    ['#C79A3E', '#0F3A2B'], ['#EDE6D6', '#0F3A2B'], ['#FFFFFF', '#167B54'],
+    ['#1F5A43', '#F5F5F4']
   ];
 
   var PITCH = 43;   // spine width + gap, must match the CSS

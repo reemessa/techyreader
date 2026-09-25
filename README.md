@@ -49,6 +49,10 @@ for UI.
 Light only. No dark mode — the tools should look like the Instagram
 account, which is warm and light.
 
+One deliberate exception: `/publisher-wheel` uses its own green and
+gold palette (ground `#F5F5F4`, deep green `#0F3A2B`, green `#167B54`,
+gold `#C79A3E`, ink `#201F1D`). It's still light only.
+
 **Secrets live in Vercel, never in the repo.** The repo is public.
 `ANTHROPIC_API_KEY` and `DATABASE_URL` are environment variables set in
 the Vercel dashboard.
