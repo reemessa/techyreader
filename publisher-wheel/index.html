@@ -17,13 +17,11 @@
     --faint: #8A6C60;
     --line: #E6D5C8;
     --accent: #9C4A2F;
-    --spin: 5.5s;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     color-scheme: light;
   }
-  @media (prefers-reduced-motion: reduce) { :root { --spin: 0.35s; } }
   *, *::before, *::after { box-sizing: inherit; }
 
   body {
@@ -66,7 +64,6 @@
     gap: 3px;
     will-change: transform;
   }
-  .strip.go { transition: transform var(--spin) cubic-bezier(0.22, 0.6, 0.12, 1); }
   .spine {
     flex: 0 0 40px;
     writing-mode: vertical-rl;
@@ -365,8 +362,12 @@
   var WIDTH = 40;
   var COUNT = 66;   // spines per spin
   var START = 8;    // where the shelf rests before a spin
-  var STOP = 56;    // where it lands
+  var STOP = 56;    // where it lands if nobody presses stop
   var KEEP = 8;     // spines either side of the landed one carried into the next spin
+
+  var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DURATION = REDUCED ? 350 : 5500;   // ms for a spin nobody stops
+  var BRAKE = 900;                        // roughly how long a stop takes, ms
 
   var shelf = document.getElementById('shelf');
   var strip = document.getElementById('strip');
@@ -376,8 +377,9 @@
   var boothCode = document.getElementById('boothCode');
 
   var books = [];
-  var at = START;
-  var jitter = 0;
+  var at = START;        // shelf position, in spines (fractional while moving)
+  var landed = null;     // index of the book the last spin stopped on
+  var spin = null;       // the spin in progress, if any
 
   function rand(n) { return Math.floor(Math.random() * n); }
 
@@ -395,11 +397,11 @@
 
   // Fills the shelf. When `previous` is given, the books around where the
   // last spin stopped move to the resting spot, so nothing visibly jumps.
-  function fill(previous) {
+  function fill(previous, from) {
     var next = [];
     for (var i = 0; i < COUNT; i++) {
       var carried = previous && Math.abs(i - START) <= KEEP;
-      next.push(carried ? previous[i - START + STOP] : randomBook());
+      next.push(carried ? previous[i - START + from] : randomBook());
     }
     books = next;
 
@@ -417,47 +419,94 @@
     });
   }
 
-  function offset(i) {
-    return shelf.clientWidth / 2 - (i * PITCH + WIDTH / 2) + jitter;
+  function place(p) {
+    at = p;
+    var x = shelf.clientWidth / 2 - (p * PITCH + WIDTH / 2);
+    strip.style.transform = 'translateX(' + x + 'px)';
   }
 
-  function place(i) {
-    at = i;
-    strip.classList.remove('go');
-    strip.style.transform = 'translateX(' + offset(i) + 'px)';
+  // Ease-out: fast at first, slow braking at the end.
+  function natural(t) {
+    var u = Math.max(0, Math.min(t / DURATION, 1));
+    return START + (STOP - START) * (1 - Math.pow(1 - u, 3));
+  }
+  function naturalSpeed(t) {
+    var u = Math.max(0, Math.min(t / DURATION, 1));
+    return (STOP - START) * 3 * Math.pow(1 - u, 2) / DURATION;   // spines per ms
+  }
+
+  function frame(now) {
+    var t = now - spin.began;
+
+    if (spin.brake) {
+      var b = spin.brake;
+      var s = Math.min(now - b.began, b.duration);
+      // Constant deceleration from the speed at the moment of pressing,
+      // reaching zero exactly on the target book.
+      place(b.from + b.speed * s - 0.5 * (b.speed / b.duration) * s * s);
+      if (s >= b.duration) return finish(b.target);
+    } else {
+      place(natural(t));
+      if (t >= DURATION) return finish(STOP);
+    }
+    spin.raf = requestAnimationFrame(frame);
+  }
+
+  function finish(index) {
+    place(index);
+    spin = null;
+    landed = index;
+    strip.children[index].classList.add('hit');
+    nameEl.textContent = books[index].name;
+    nameEl.classList.remove('pending');
+    boothCode.textContent = books[index].booth;
+    boothEl.hidden = !books[index].booth;
+    go.textContent = 'دوّر الرف';
+    go.disabled = false;
+  }
+
+  function start() {
+    if (landed !== null) fill(books, landed);
+    landed = null;
+    place(START);
+
+    spin = { began: performance.now(), brake: null };
+    spin.raf = requestAnimationFrame(frame);
+
+    go.textContent = 'وقّف';
+    nameEl.textContent = '…';
+    nameEl.classList.add('pending');
+    boothEl.hidden = true;
+  }
+
+  // Brake onto a book a little way ahead. If the shelf is already slower
+  // than a brake would be, let it finish on its own.
+  function stop() {
+    var now = performance.now();
+    var speed = naturalSpeed(now - spin.began);
+    var target = Math.max(Math.round(at + speed * BRAKE / 2), Math.ceil(at + 0.5));
+    if (target >= STOP) return;
+
+    spin.brake = {
+      began: now,
+      from: at,
+      speed: speed,
+      target: target,
+      duration: 2 * (target - at) / speed
+    };
+    go.disabled = true;
   }
 
   fill(null);
   place(START);
 
   window.addEventListener('resize', function () {
-    if (!go.disabled) place(at);
+    if (!spin) place(at);
   });
 
   go.addEventListener('click', function () {
-    if (at === STOP) fill(books);
-    place(START);
-    void strip.offsetWidth;   // commit the resting position before animating
-
-    jitter = (Math.random() - 0.5) * 22;
-    at = STOP;
-    strip.classList.add('go');
-    strip.style.transform = 'translateX(' + offset(STOP) + 'px)';
-
-    go.disabled = true;
-    nameEl.textContent = '…';
-    nameEl.classList.add('pending');
-    boothEl.hidden = true;
-  });
-
-  strip.addEventListener('transitionend', function (e) {
-    if (e.target !== strip) return;
-    strip.children[STOP].classList.add('hit');
-    nameEl.textContent = books[STOP].name;
-    nameEl.classList.remove('pending');
-    boothCode.textContent = books[STOP].booth;
-    boothEl.hidden = !books[STOP].booth;
-    go.disabled = false;
+    if (!spin) start();
+    else if (!spin.brake) stop();
   });
 })();
 </script>

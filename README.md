@@ -140,7 +140,8 @@ name alongside the title and pass both to the model.
 ### `/publisher-wheel`
 
 Press the button, a bookshelf slides like a slot machine, and it stops
-on one spine: a random Arabic publisher. Arabic only.
+on one spine: a random Arabic publisher. Pressing the button again
+while it slides brakes it onto a book a few spines ahead. Arabic only.
 
 Static page, no function, no database. The list is the `PUBLISHERS`
 array at the top of the script in `publisher-wheel/index.html`, and
