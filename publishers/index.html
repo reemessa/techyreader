@@ -223,6 +223,7 @@
   .booth small { color: var(--faint); font-weight: 600; font-size: 12px; }
   .card .where { display: flex; align-items: center; gap: 7px; }
   .flag { font-size: 18px; line-height: 1; }
+  .flag svg { display: block; width: 21px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.25); }
 
   .heart {
     width: 40px;
@@ -489,9 +490,17 @@
     PS: 'فلسطين', GB: 'المملكة المتحدة', MA: 'المغرب', IT: 'إيطاليا'
   };
 
+  // Flags the phone's emoji can't be trusted to draw right. Many phones
+  // still show Syria's old flag for 🇸🇾, so the current one (green, white
+  // and black with three red stars) is drawn here instead.
+  var DRAWN_FLAGS = {
+    SY: '<svg viewBox="0 0 30 20" aria-hidden="true"><rect width="30" height="20" fill="#FFFFFF"/><rect width="30" height="6.67" fill="#007A3D"/><rect y="13.33" width="30" height="6.67" fill="#000000"/><polygon fill="#CE1126" points="7.50,7.40 8.08,9.20 9.97,9.20 8.44,10.31 9.03,12.10 7.50,10.99 5.97,12.10 6.56,10.31 5.03,9.20 6.92,9.20"/><polygon fill="#CE1126" points="15.00,7.40 15.58,9.20 17.47,9.20 15.94,10.31 16.53,12.10 15.00,10.99 13.47,12.10 14.06,10.31 12.53,9.20 14.42,9.20"/><polygon fill="#CE1126" points="22.50,7.40 23.08,9.20 24.97,9.20 23.44,10.31 24.03,12.10 22.50,10.99 20.97,12.10 21.56,10.31 20.03,9.20 21.92,9.20"/></svg>'
+  };
+
   // "JO" -> 🇯🇴: each letter becomes its regional-indicator symbol, and
   // the phone draws the pair as a flag.
   function flag(code) {
+    if (DRAWN_FLAGS[code]) return DRAWN_FLAGS[code];
     return String.fromCodePoint.apply(null, code.split('').map(function (c) {
       return 0x1F1E6 + c.charCodeAt(0) - 65;
     }));
