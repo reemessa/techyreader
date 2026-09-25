@@ -73,17 +73,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 0;
+    padding: 16px 0;
     font-size: 12px;
     font-weight: 600;
-    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     border-radius: 3px 3px 1px 1px;
     background-image:
       linear-gradient(to bottom, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px),
       linear-gradient(to top, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px);
     transition: transform .35s ease;
+  }
+  /* Long names stop short of the gilt bands and end in "…"; the full
+     name is always shown below the shelf. */
+  .spine span {
+    display: block;
+    max-height: 100%;
+    min-height: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .spine.hit { transform: translateY(-14px); }
   .plank { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: var(--muted); }
@@ -399,7 +407,9 @@
     books.forEach(function (book) {
       var el = document.createElement('div');
       el.className = 'spine';
-      el.textContent = book.name;
+      var label = document.createElement('span');
+      label.textContent = book.name;
+      el.appendChild(label);
       el.style.height = book.height + 'px';
       el.style.backgroundColor = book.bg;
       el.style.color = book.fg;
