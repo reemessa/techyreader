@@ -168,7 +168,8 @@ every spin picks from the whole list, however long it is.
 ### `/publishers`
 
 The same book-fair publishers as cards, grouped by hall (A, B, C), each
-with its booth and a heart. Search matches names and booth numbers and
+with its booth and a heart. Shown 24 to a page (`PER_PAGE`), with the
+hall headings counting the whole result. Search matches names and booth numbers and
 ignores hamza and diacritics. The heart builds a wishlist ("قائمتي"),
 kept in the reader's browser (`localStorage`, key `publishers:saved`,
 stored by name). No accounts, nothing sent anywhere.

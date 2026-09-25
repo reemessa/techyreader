@@ -174,6 +174,25 @@
   .count { font-size: 12px; color: var(--faint); margin: 10px 2px 0; }
   .empty { text-align: center; color: var(--muted); font-size: 15px; line-height: 1.8; padding: 40px 10px; }
 
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+  .pager[hidden] { display: none; }
+  .pager button {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    min-height: 44px;
+    min-width: 96px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gold);
+    color: var(--forest);
+    cursor: pointer;
+  }
+  .pager button[disabled] { background: var(--edge); color: var(--faint); cursor: default; }
+  .pager button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  .pager .where { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
   .hall { margin-top: 18px; }
   .hall h2 {
     display: flex;
@@ -228,6 +247,8 @@
   footer { margin-top: 48px; text-align: center; font-size: 12px; color: var(--faint); line-height: 1.9; }
   footer a { color: var(--ink); }
   footer .privacy { margin: 14px auto 0; max-width: 380px; font-size: 11px; line-height: 1.8; }
+  footer .powered { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  footer .powered b { color: var(--green); }
 </style>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -257,9 +278,16 @@
 
   <div id="list"></div>
 
+  <nav class="pager" id="pager" aria-label="الصفحات" hidden>
+    <button type="button" id="prev">السابق</button>
+    <span class="where" id="where"></span>
+    <button type="button" id="next">التالي</button>
+  </nav>
+
   <footer>
     قائمتك محفوظة على جهازك<br>
     <a href="https://instagram.com/reemiii_93" dir="ltr">@reemiii_93</a>
+    <div class="powered" dir="ltr">Powered by <b>Waraq</b></div>
     <p class="privacy">دليل غير رسمي. القائمة من موقع <a href="https://unionjp.com">اتحاد الناشرين الأردنيين</a>.<br>قائمتك على جهازك بس، بدون حسابات ولا كوكيز، والزيارات بتنحسب بدون ما نعرف مين إنت.</p>
   </footer>
 
@@ -499,6 +527,13 @@
   }
 
   var filter = 'all';
+  var PER_PAGE = 24;   // twelve rows of two cards
+  var pageNo = 1;
+
+  var pager = document.getElementById('pager');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var where = document.getElementById('where');
 
   // Marks the typed text inside a name, when it appears there as typed.
   function highlight(name) {
@@ -528,7 +563,10 @@
     savedTab.textContent = 'قائمتي' + (n ? ' (' + n + ')' : '');
   }
 
-  function render() {
+  // A new search or filter starts again at page 1; `keepPage` is for
+  // re-drawing the same view (turning a page, un-hearting in قائمتي).
+  function render(keepPage) {
+    if (keepPage !== true) pageNo = 1;
     var q = normalise(input.value);
     var shown = items.filter(function (item) {
       if (filter === 'saved' && !saved[item.name]) return false;
@@ -539,6 +577,13 @@
     updateSavedTab();
     count.textContent = shown.length + ' من ' + items.length + ' دار نشر';
 
+    var pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
+    pageNo = Math.min(pageNo, pages);
+    pager.hidden = pages < 2;
+    prev.disabled = pageNo === 1;
+    next.disabled = pageNo === pages;
+    where.textContent = 'صفحة ' + pageNo + ' من ' + pages;
+
     if (!shown.length) {
       list.innerHTML = '<p class="empty">' + (filter === 'saved' && !q
         ? 'قائمتك فاضية. اضغط على القلب جنب أي دار بدك تزورها.'
@@ -546,20 +591,35 @@
       return;
     }
 
+    // Hall headings count the whole result, not just this page.
+    var totals = {};
+    shown.forEach(function (item) { var h = item.hall || '—'; totals[h] = (totals[h] || 0) + 1; });
+
     var groups = {}, order = [];
-    shown.forEach(function (item) {
+    shown.slice((pageNo - 1) * PER_PAGE, pageNo * PER_PAGE).forEach(function (item) {
       var h = item.hall || '—';
       if (!groups[h]) { groups[h] = []; order.push(h); }
       groups[h].push(item);
     });
     list.innerHTML = order.map(function (h) {
       var title = h === '—' ? 'بدون جناح' : 'أجنحة ' + h;
-      return '<section class="hall"><h2>' + title + ' <span>' + groups[h].length + '</span></h2>' +
+      return '<section class="hall"><h2>' + title + ' <span>' + totals[h] + '</span></h2>' +
         '<div class="cards">' + groups[h].map(card).join('') + '</div></section>';
     }).join('');
   }
 
   input.addEventListener('input', render);
+
+  // Turn the page and bring the top of the list back under the search bar.
+  function turn(step) {
+    pageNo += step;
+    render(true);
+    var bar = document.querySelector('.bar');
+    var top = list.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 8;
+    window.scrollTo(0, Math.max(0, top));
+  }
+  prev.addEventListener('click', function () { turn(-1); });
+  next.addEventListener('click', function () { turn(1); });
 
   tabs.addEventListener('click', function (e) {
     var b = e.target.closest('.tab');
@@ -578,7 +638,7 @@
 
     // In "قائمتي" an un-hearted card should leave; everywhere else just
     // flip the one heart so the page doesn't move.
-    if (filter === 'saved') return render();
+    if (filter === 'saved') return render(true);
     var on = !!saved[item.name];
     b.setAttribute('aria-pressed', String(on));
     b.setAttribute('aria-label', on ? 'شيل من قائمتي' : 'ضيف لقائمتي');
