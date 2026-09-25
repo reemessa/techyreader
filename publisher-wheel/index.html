@@ -360,14 +360,18 @@
 
   var PITCH = 43;   // spine width + gap, must match the CSS
   var WIDTH = 40;
-  var COUNT = 66;   // spines per spin
   var START = 8;    // where the shelf rests before a spin
-  var STOP = 56;    // where it lands if nobody presses stop
   var KEEP = 8;     // spines either side of the landed one carried into the next spin
 
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DURATION = REDUCED ? 350 : 5500;   // ms for a spin nobody stops
-  var BRAKE = 900;                        // roughly how long a stop takes, ms
+  var SPEED = 30 / 1000;               // spines per ms at full speed
+  var RAMP = 400;                      // ms to get up to full speed
+  var AUTO = REDUCED ? 0 : 10000;      // ms before it stops by itself
+  var BRAKE = 1500;                    // roughly how long a stop takes, ms
+
+  // Enough spines to slide at full speed until the auto-stop, brake, and
+  // still have books either side of the one it lands on.
+  var COUNT = START + Math.ceil(SPEED * (AUTO + BRAKE)) + KEEP + 4;
 
   var shelf = document.getElementById('shelf');
   var strip = document.getElementById('strip');
@@ -425,14 +429,11 @@
     strip.style.transform = 'translateX(' + x + 'px)';
   }
 
-  // Ease-out: fast at first, slow braking at the end.
-  function natural(t) {
-    var u = Math.max(0, Math.min(t / DURATION, 1));
-    return START + (STOP - START) * (1 - Math.pow(1 - u, 3));
-  }
-  function naturalSpeed(t) {
-    var u = Math.max(0, Math.min(t / DURATION, 1));
-    return (STOP - START) * 3 * Math.pow(1 - u, 2) / DURATION;   // spines per ms
+  // Speeds up over RAMP ms, then slides at a steady SPEED until stopped.
+  function cruise(t) {
+    t = Math.max(0, t);
+    if (t < RAMP) return START + 0.5 * (SPEED / RAMP) * t * t;
+    return START + 0.5 * SPEED * RAMP + SPEED * (t - RAMP);
   }
 
   function frame(now) {
@@ -441,13 +442,14 @@
     if (spin.brake) {
       var b = spin.brake;
       var s = Math.min(now - b.began, b.duration);
-      // Constant deceleration from the speed at the moment of pressing,
-      // reaching zero exactly on the target book.
+      // Constant deceleration from full speed, reaching zero exactly on
+      // the target book.
       place(b.from + b.speed * s - 0.5 * (b.speed / b.duration) * s * s);
       if (s >= b.duration) return finish(b.target);
     } else {
-      place(natural(t));
-      if (t >= DURATION) return finish(STOP);
+      place(cruise(t));
+      // A press during the ramp, or the 10 seconds running out.
+      if (t >= RAMP && (spin.stopAsked || t >= AUTO)) stop(now);
     }
     spin.raf = requestAnimationFrame(frame);
   }
@@ -470,7 +472,7 @@
     landed = null;
     place(START);
 
-    spin = { began: performance.now(), brake: null };
+    spin = { began: performance.now(), brake: null, stopAsked: false };
     spin.raf = requestAnimationFrame(frame);
 
     go.textContent = 'وقّف';
@@ -479,24 +481,18 @@
     boothEl.hidden = true;
   }
 
-  // Brake onto a book a little way ahead. If the shelf is already slower
-  // than a brake would be, let it finish on its own.
-  function stop() {
-    var now = performance.now();
-    var speed = naturalSpeed(now - spin.began);
-    var target = Math.max(Math.round(at + speed * BRAKE / 2), Math.ceil(at + 0.5));
-    if (target >= STOP) return;
-
+  // Brake from full speed onto a book about BRAKE ms of sliding ahead.
+  function stop(now) {
+    var target = Math.round(at + SPEED * BRAKE / 2);
     spin.brake = {
       began: now,
       from: at,
-      speed: speed,
+      speed: SPEED,
       target: target,
-      duration: 2 * (target - at) / speed
+      duration: 2 * (target - at) / SPEED
     };
     go.disabled = true;
   }
-
   fill(null);
   place(START);
 
@@ -506,7 +502,7 @@
 
   go.addEventListener('click', function () {
     if (!spin) start();
-    else if (!spin.brake) stop();
+    else if (!spin.brake) spin.stopAsked = true;
   });
 })();
 </script>
