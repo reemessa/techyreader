@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رفّ الناشرين — The Techy Reader</title>
+<meta name="description" content="دوّر الرف، وشوف أي دار نشر بتطلعلك">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --ground: #F5EDE4;
+    --card: #FFFCF8;
+    --ink: #2B1C16;
+    --muted: #5A4038;
+    --faint: #8A6C60;
+    --line: #E6D5C8;
+    --accent: #9C4A2F;
+    --spin: 4.2s;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+  }
+  @media (prefers-reduced-motion: reduce) { :root { --spin: 0.35s; } }
+  *, *::before, *::after { box-sizing: inherit; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Cairo', system-ui, sans-serif;
+    min-height: 100%;
+  }
+
+  .wrap { max-width: 520px; margin: 0 auto; padding: 40px 22px 64px; text-align: center; }
+
+  h1 {
+    font-family: 'Aref Ruqaa', Georgia, serif;
+    font-size: clamp(30px, 9vw, 40px);
+    color: var(--accent);
+    margin: 0 0 10px;
+    line-height: 1.3;
+  }
+  .lede { margin: 0 0 30px; font-size: 15px; line-height: 1.8; color: var(--muted); }
+
+  /* The shelf. Laid out left-to-right internally so the slide maths stays
+     simple; the spines themselves are vertical text, so it reads the same. */
+  .shelf {
+    position: relative;
+    height: 232px;
+    overflow: hidden;
+    direction: ltr;
+    background: linear-gradient(#EFE3D7, #E8D8C9);
+    border-radius: 12px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  }
+  .strip {
+    position: absolute;
+    left: 0;
+    bottom: 14px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    will-change: transform;
+  }
+  .strip.go { transition: transform var(--spin) cubic-bezier(0.15, 0.7, 0.1, 1); }
+  .spine {
+    flex: 0 0 40px;
+    writing-mode: vertical-rl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 0;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 3px 3px 1px 1px;
+    background-image:
+      linear-gradient(to bottom, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px),
+      linear-gradient(to top, transparent 9px, rgba(245,237,228,.45) 9px, rgba(245,237,228,.45) 11px, transparent 11px);
+    transition: transform .35s ease;
+  }
+  .spine.hit { transform: translateY(-14px); }
+  .plank { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: var(--muted); }
+  .marker {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 16px solid var(--ink);
+    z-index: 2;
+  }
+
+  button {
+    width: 100%;
+    min-height: 54px;
+    margin-top: 18px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ground);
+    background: var(--accent);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  button[disabled] { opacity: 0.6; cursor: default; }
+
+  .result { margin-top: 26px; min-height: 90px; }
+  .result .label { font-size: 12px; color: var(--faint); }
+  .result .name {
+    font-family: 'Aref Ruqaa', Georgia, serif;
+    font-size: clamp(30px, 9vw, 40px);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .result .name.pending { color: #D9C3B4; }
+  .result .booth { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .result .booth b { color: var(--accent); font-size: 18px; }
+
+  footer { margin-top: 48px; font-size: 12px; color: var(--faint); line-height: 1.9; }
+  footer a { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>رفّ الناشرين</h1>
+  <p class="lede">دوّر الرف، وشوف أي دار نشر بتطلعلك</p>
+
+  <div class="shelf" id="shelf" aria-hidden="true">
+    <span class="marker"></span>
+    <div class="strip" id="strip"></div>
+    <div class="plank"></div>
+  </div>
+
+  <button id="go" type="button">دوّر الرف</button>
+
+  <div class="result" aria-live="polite">
+    <div class="label">دار النشر</div>
+    <div class="name pending" id="name">—</div>
+    <div class="booth" id="booth" hidden>الجناح <b dir="ltr" id="boothCode"></b></div>
+  </div>
+
+  <footer>
+    رفّ واحد، وكل دور النشر عليه<br>
+    <a href="https://instagram.com/reemiii_93" dir="ltr">@reemiii_93</a>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  // The whole list, one [name, booth] per line; the shelf picks from all
+  // of them. Exhibitors at the Amman book fair, in booth order (A, B, C).
+  // A blank booth just hides the booth line.
+  var PUBLISHERS = [
+    ['دار جرير', 'A1'],
+    ['الدار الأهلية للنشر والتوزيع', 'A2'],
+    ['ضيف الشرف سوريا', 'A3'],
+    ['دار ومكتبة خطوط وظلال للنشر والتوزيع', 'A4'],
+    ['مركز الأدب العربي للنشر والتوزيع', 'A5'],
+    ['دار الرواية العربية للنشر والتوزيع + دار الاسراء للنشر', 'A6'],
+    ['شركة الحياة', 'A7'],
+    ['عصير الكتب', 'A8'],
+    ['المركز العربي للأبحاث ودراسة السياسات', 'A9'],
+    ['مكتبة الخانجي', 'A10'],
+    ['مؤسسة ابداع للاعلام والنشر', 'A11'],
+    ['دار المنهاج للنشر والتوزيع', 'A12'],
+    ['المعرفة اللامحدودة للنشر والتوزيع', 'A13'],
+    ['الرواق للنشر والتوزيع', 'A14'],
+    ['مركز دراسات الوحدة العربية', 'A15'],
+    ['دار الكتب الجامعية', 'A16'],
+    ['دار الاثرية للنشر والتوزيع', 'A17'],
+    ['دار ابن عباس للنشر والتوزيع', 'A18'],
+    ['شركة نسمات للتكنولوجيا المعلومات والنشر و التوزيع', 'A19'],
+    ['دار ريشة و كتاب', 'A20'],
+    ['الكرمة للنشر', 'A21'],
+    ['شركة دار مكتبة المعارف ناشرون', 'A22'],
+    ['هيئة الشارقة للكتاب', 'A23'],
+    ['دار المناهج للنشر والتوزيع', 'A24'],
+    ['دار المايا للنشر والتوزيع', 'A25'],
+    ['الشبكة العربية للأبحاث والنشر', 'A26'],
+    ['شركة المطبوعات للتوزيع والنشر', 'A27'],
+    ['المرصد العربي للترجمة', 'A28'],
+    ['الدار الشامية -دمشق', 'A29'],
+    ['مركز البحوث الكويتية', 'A30'],
+    ['دار كنوز اشبيليا', 'A31'],
+    ['دار ضياء الشام', 'A32'],
+    ['دار غد الأجيال للنشر و التوزيع', 'A33'],
+    ['السلوى للدراسات والنشر', 'A34'],
+    ['المجلس الوطني للثقافة و الفنون والاداب', 'A35'],
+    ['المركز الدولي للدراسات الاستراتيجية', 'A36'],
+    ['السراج للنشر والتوزيع', 'A37'],
+    ['المعهد العالمي للفكر الإسلامي', 'A38'],
+    ['دار ركاز للنشر والتوزيع', 'A39'],
+    ['دار الرياحين للنشر والتوزيع', 'A40'],
+    ['أقلام عربية للنشر والتوزيع', 'A41'],
+    ['الهيئة العالمية لتدبر القرآن الكريم', 'A42'],
+    ['دار الثقافة ناشرون وموزعون', 'A43'],
+    ['مركز إبصار للنشر والتوزيع', 'A44'],
+    ['جبل عمان ناشرون', 'A45'],
+    ['دار يافا العلمية للنشر', 'A46'],
+    ['مكتبة عدنان للنشر', 'A47'],
+    ['صفصافة للنشر والتوزيع', 'A48'],
+    ['كيان للنشر kayan publishing', 'A49'],
+    ['دار الحضارة للنشر والتوزيع', 'A50'],
+    ['دار الفكر للطباعة والنشر والتوزيع', 'A51'],
+    ['مؤسسة دار المعارف', 'A52'],
+    ['المكتبة العمرية للنشر والتوزيع', 'A53'],
+    ['دار المنهاج القويم للنشر والتوزيع', 'A54'],
+    ['دار ربيع للنشر ( إمارات -سوريا )', 'A55'],
+    ['ألف باء تاء للنشر والتوزيع', 'A56'],
+    ['دار دجلة ناشرون و موزعون', 'A57'],
+    ['دار حنين للنشر والتوزيع', 'A58'],
+    ['مجموعة زاد للنشر', 'A59'],
+    ['مكتبة عبق المسك', 'A60'],
+    ['اليمامة للنشر والتوزيع', 'A61'],
+    ['دار الساقي للتوزيع والنشر', 'A62'],
+    ['مؤسسة البصائر للدراسات والنشر', 'A63'],
+    ['دار الجامعة الجديدة', 'A64'],
+    ['نوفا بلس للنشر والتوزيع', 'A65'],
+    ['دار النشر لجامعة بكين لإعداد المعلمين', 'A66'],
+    ['جسور ثقافية للنشر والتوزيع', 'A67'],
+    ['مكتبة الرشد', 'A68'],
+    ['دار الفارس للنشر والتوزيع', 'A69'],
+    ['كتب نون ناهد الشوا الثقافية', 'A70'],
+    ['وزارة الثقافة الأردنية', 'B1'],
+    ['امانة عمان الكبرى', 'B2'],
+    ['العلم للجميع-البرزنجي للفنون واللفات', 'B3'],
+    ['وزارة الثقافة والرياضة والشباب', 'B4'],
+    ['سفارة السودان / وزارة الثقافة السودان', 'B5'],
+    ['جامعة طبرق', 'B7'],
+    ['دار منار الفكر للنشر والتوزيع', 'B8'],
+    ['مكتبة الإرشاد', 'B9'],
+    ['دار البينة', 'B10'],
+    ['دار المعرفة', 'B11'],
+    ['كتوبيا', 'B12'],
+    ['دار ابن عفان', 'B13'],
+    ['دار الجندي للنشر والتوزيع', 'B14'],
+    ['دار الدقاق', 'B15'],
+    ['مؤسسة الدراسات الفلسطينية', 'B16'],
+    ['وزارة الثقافة والشباب', 'B17'],
+    ['وزارة الثقافة الفلسطينية', 'B18'],
+    ['دار اللؤلؤة للنشر والتوزيع', 'B19'],
+    ['دار الفكر ناشرون وموزعون', 'B20'],
+    ['دار كنعان للدراسات والنشر', 'B21'],
+    ['دار ممدوح عدوان للنشر والتوزيع', 'B22'],
+    ['دار ورد للنشر والتوزيع', 'B23'],
+    ['زمزم ناشرون و موزعون', 'B24'],
+    ['دار افاق للنشر والتوزيع', 'B25'],
+    ['شركة الناشر للدعاية والاعلان و دارطباق للنشر والتوزيع', 'B26'],
+    ['دار أسامة للنشر والتوزيع', 'B27'],
+    ['دار المعرفة للنشر والتوزيع', 'B28'],
+    ['دار دون للنشر والتوزيع', 'B29'],
+    ['شركة دار المنهل ناشرون ذ.م.م', 'B30'],
+    ['دار فنون التعليم للنشر والتوزيع', 'B31'],
+    ['دار روائع مجدلاوي للنشر', 'B32'],
+    ['شركة الإبداع الفكري للنشر والتوزيع', 'B33'],
+    ['مركز المحروسة للنشر والخدمات الصحفية والمعلومات', 'B34'],
+    ['هوم أبليد تراينينغ', 'B35'],
+    ['دايموند للنشر والتوزيع', 'B36'],
+    ['كليلة ودمنة دار نشر وتوزيع', 'B37'],
+    ['مركز دراسات القدس', 'B38'],
+    ['دار الإرشاد للنشر', 'B39'],
+    ['فضاءات للنشر والتوزيع', 'B40'],
+    ['دار التقوى للطبع والنشر والتوزيع', 'B41'],
+    ['دار النهار', 'B42'],
+    ['مركز طروس للنشر والتوزيع', 'B43'],
+    ['واحة الكتب للنشر والتوزيع', 'B44'],
+    ['عطاءات العلم', 'B45'],
+    ['دار صدى للنشر والتوزيع', 'B46'],
+    ['شركة المقاربة للنشر', 'B47'],
+    ['المكتبة الحديثة ناشرون', 'B48'],
+    ['منشورات رصاص', 'B49'],
+    ['دارة نجيبويه', 'B50'],
+    ['دار الوراق للنشر لندن', 'B51'],
+    ['دار المعتز للنشر', 'B52'],
+    ['دار كلمات للنشر والتوزيع', 'B53'],
+    ['مكتبة النافذة', 'B54'],
+    ['الآن ناشرون وموزعون', 'B55'],
+    ['تورن ذا بيج', 'B56'],
+    ['ذات السلاسل', 'B57'],
+    ['نور حوران للدراسات والنشر والتراث', 'B58'],
+    ['مكتبة كل شيء - حيفا', 'B60'],
+    ['دار العين للنشر والتوزيع', 'B61'],
+    ['دار روائع سما للنشر والتوزيع', 'B62'],
+    ['دار الشروق للنشر والتوزيع', 'C1'],
+    ['دار ومكتبة الحامد للنشر والتوزيع', 'C2'],
+    ['جمعية المحافظة على القرآن الكريم', 'C3'],
+    ['دار عمار للنشر والتوزيع', 'C4'],
+    ['دار كتاب للنشر والتوزيع', 'C5'],
+    ['دار الغوثاني', 'C6'],
+    ['دار الندى للاستثمار الثقافى', 'C7'],
+    ['دار العائدون للنشر والتوزيع', 'C8'],
+    ['وكالة التوزيع الأردنية - ارامكس ميديا', 'C9'],
+    ['دار ابن رشيق للنشر والتوزيع', 'C10'],
+    ['دار جبرا للنشر والتوزيع', 'C11'],
+    ['المركز الاكاديمى للطباعة والنشر', 'C12'],
+    ['جمعية الكتاب المقدس', 'C13'],
+    ['مركز الادب العربي للنشر والتوزيع', 'C14'],
+    ['دار أروقة الفكر للنشر والتوزيع', 'C15'],
+    ['مروج للنشر والتوزيع', 'C16'],
+    ['دار المشرق العربى', 'C17'],
+    ['دار العصماء للنشر والتوزيع', 'C18'],
+    ['دار الفارابي', 'C19'],
+    ['دار المعين للنشر والتوزيع', 'C20'],
+    ['دار نينوى للدراسات والنشر والتوزيع', 'C21'],
+    ['دار مفكرون الدولية للنشر و التوزيع', 'C22'],
+    ['نهضة مصر للنشر', 'C23'],
+    ['مؤسسة إبداع للترجمة والنشر والتوزيع', 'C24'],
+    ['رابطة الكتاب الأردنيين', 'C25'],
+    ['دار الشروق', 'C26'],
+    ['سما للنشر والتوزيع', 'C27'],
+    ['اتحاد الكتاب الأردنيين', 'C28'],
+    ['المركز العربي للدراسات والبحوث العلمية للنشر والتوزيع', 'C29'],
+    ['دار رسلان / دار علاء الدين', 'C30'],
+    ['مدارات للأبحاث والنشر', 'C31'],
+    ['مكتبات البحر الأحمر', 'C32'],
+    ['دار الثقافة العربية الإسلامية للنشر والتوزيع', 'C33'],
+    ['منشورات المتوسط', 'C34'],
+    ['دار الجنان للنشر والتوزيع', 'C35'],
+    ['دار الياسمين للنشر والتوزيع', 'C36'],
+    ['شركة ميديا بروتك للنشر والتوزيع', 'C37'],
+    ['مؤسسة الوراق للنشر والتوزيع', 'C38'],
+    ['دار شأن للنشر والتوزيع', 'C39'],
+    ['دار السدرة للنشر', 'C40'],
+    ['إنسيكلوميديا', 'C41'],
+    ['دار الرافدين للطباعة والنشر', 'C42'],
+    ['شركة دار الشرق العربي', 'C43'],
+    ['الدار العربية للعلوم ناشرون', 'C44'],
+    ['مركز اليرموك للتوزيع', 'C45'],
+    ['بيت الحكمة', 'C46'],
+    ['الاتحاد العام للكتاب والادباء الفلسطينين', '']
+  ];
+
+  // Cloth-spine colours, each with the text colour that reads on it.
+  var COLOURS = [
+    ['#9C4A2F', '#F5EDE4'], ['#5A4038', '#F5EDE4'], ['#B98B63', '#2B1C16'],
+    ['#6F7A5E', '#F5EDE4'], ['#2B1C16', '#F5EDE4'], ['#C7A48A', '#2B1C16'],
+    ['#7D3B26', '#F5EDE4'], ['#8A6C60', '#F5EDE4']
+  ];
+
+  var PITCH = 43;   // spine width + gap, must match the CSS
+  var WIDTH = 40;
+  var COUNT = 66;   // spines per spin
+  var START = 8;    // where the shelf rests before a spin
+  var STOP = 56;    // where it lands
+  var KEEP = 8;     // spines either side of the landed one carried into the next spin
+
+  var shelf = document.getElementById('shelf');
+  var strip = document.getElementById('strip');
+  var go = document.getElementById('go');
+  var nameEl = document.getElementById('name');
+  var boothEl = document.getElementById('booth');
+  var boothCode = document.getElementById('boothCode');
+
+  var books = [];
+  var at = START;
+  var jitter = 0;
+
+  function rand(n) { return Math.floor(Math.random() * n); }
+
+  function randomBook() {
+    var colour = COLOURS[rand(COLOURS.length)];
+    var publisher = PUBLISHERS[rand(PUBLISHERS.length)];
+    return {
+      name: publisher[0],
+      booth: publisher[1],
+      bg: colour[0],
+      fg: colour[1],
+      height: 150 + rand(48)
+    };
+  }
+
+  // Fills the shelf. When `previous` is given, the books around where the
+  // last spin stopped move to the resting spot, so nothing visibly jumps.
+  function fill(previous) {
+    var next = [];
+    for (var i = 0; i < COUNT; i++) {
+      var carried = previous && Math.abs(i - START) <= KEEP;
+      next.push(carried ? previous[i - START + STOP] : randomBook());
+    }
+    books = next;
+
+    strip.innerHTML = '';
+    books.forEach(function (book) {
+      var el = document.createElement('div');
+      el.className = 'spine';
+      el.textContent = book.name;
+      el.style.height = book.height + 'px';
+      el.style.backgroundColor = book.bg;
+      el.style.color = book.fg;
+      strip.appendChild(el);
+    });
+  }
+
+  function offset(i) {
+    return shelf.clientWidth / 2 - (i * PITCH + WIDTH / 2) + jitter;
+  }
+
+  function place(i) {
+    at = i;
+    strip.classList.remove('go');
+    strip.style.transform = 'translateX(' + offset(i) + 'px)';
+  }
+
+  fill(null);
+  place(START);
+
+  window.addEventListener('resize', function () {
+    if (!go.disabled) place(at);
+  });
+
+  go.addEventListener('click', function () {
+    if (at === STOP) fill(books);
+    place(START);
+    void strip.offsetWidth;   // commit the resting position before animating
+
+    jitter = (Math.random() - 0.5) * 22;
+    at = STOP;
+    strip.classList.add('go');
+    strip.style.transform = 'translateX(' + offset(STOP) + 'px)';
+
+    go.disabled = true;
+    nameEl.textContent = '…';
+    nameEl.classList.add('pending');
+    boothEl.hidden = true;
+  });
+
+  strip.addEventListener('transitionend', function (e) {
+    if (e.target !== strip) return;
+    strip.children[STOP].classList.add('hit');
+    nameEl.textContent = books[STOP].name;
+    nameEl.classList.remove('pending');
+    boothCode.textContent = books[STOP].booth;
+    boothEl.hidden = !books[STOP].booth;
+    go.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

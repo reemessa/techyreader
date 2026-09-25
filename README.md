@@ -137,6 +137,15 @@ normaliser strips diacritics and unifies أ/إ/آ and ة/ه, but it can't fix
 a wrong letter. If this keeps happening, the fix is to accept an author
 name alongside the title and pass both to the model.
 
+### `/publisher-wheel`
+
+Press the button, a bookshelf slides like a slot machine, and it stops
+on one spine: a random Arabic publisher. Arabic only.
+
+Static page, no function, no database. The list is the `PUBLISHERS`
+array at the top of the script in `publisher-wheel/index.html`, and
+every spin picks from the whole list, however long it is.
+
 ---
 
 ## Working on this
