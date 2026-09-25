@@ -39,6 +39,9 @@ each tool works). Read it before changing anything.
   `one-word/index.html` too.
 - The publisher list is copied in `publisher-wheel/index.html` and
   `publishers/index.html`. Change both.
+- `/publishers` works offline through `publishers-sw.js` at the repo root.
+  Readers see a changed page one visit late, so bump `VERSION` in that
+  file whenever a change must reach them.
 
 ## Working style
 

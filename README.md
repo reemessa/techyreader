@@ -161,6 +161,14 @@ stored by name). No accounts, nothing sent anywhere.
 Static page. The list is a copy of the one in the publisher wheel; when
 it changes, change both.
 
+**Works offline.** `publishers-sw.js` (a service worker, at the site root
+so it can cover `/publishers` without a trailing slash) keeps a copy of
+the page and its fonts on the phone after the first visit. The fair's
+internet is bad, so the cached page is shown straight away and refreshed
+in the background: a change to the list reaches a phone on its second
+visit after the deploy. To force everyone onto a fresh copy, bump
+`VERSION` in `publishers-sw.js`.
+
 ---
 
 ## Working on this

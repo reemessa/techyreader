@@ -508,6 +508,14 @@
   });
 
   render();
+
+  // Keeps a copy on the phone so the page opens at the fair with no
+  // signal. See publishers-sw.js at the site root.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/publishers-sw.js', { scope: '/publishers' }).catch(function () {});
+    });
+  }
 })();
 </script>
 </body>
