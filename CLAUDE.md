@@ -13,6 +13,7 @@ each tool works). Read it before changing anything.
 |---|---|---|
 | `/one-word` | Type a book title, get back one word that captures it | `api/word.js`, `api/vote.js`, Postgres, Anthropic API |
 | `/publisher-wheel` | Spin a bookshelf, land on a random Arabic publisher | none, the list lives in the page |
+| `/publishers` | Searchable cards of the book-fair publishers and their booths, with a wishlist heart | none; hearts saved in the reader's browser |
 
 ## Shape of the repo
 
@@ -30,13 +31,14 @@ each tool works). Read it before changing anything.
   Cairo for UI. One-word also has an English toggle. The publisher wheel
   is Arabic only.
 - **The site palette, light only.** No dark mode. The colours are listed in
-  README.md. The one exception is `/publisher-wheel`, which has its own
-  green and gold palette on purpose.
+  README.md (deep green, green and gold).
 - **Secrets stay in Vercel.** The repo is public.
 - **Don't reorder the lookup chain in `api/word.js`.** It's the whole cost
   strategy (overrides → memory → db → model).
 - If you change `normalise()` in `api/word.js`, change the copy in
   `one-word/index.html` too.
+- The publisher list is copied in `publisher-wheel/index.html` and
+  `publishers/index.html`. Change both.
 
 ## Working style
 

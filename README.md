@@ -40,18 +40,16 @@ for UI.
 
 | | |
 |---|---|
-| ground | `#F5EDE4` |
-| card | `#FFFCF8` |
-| ink | `#2B1C16` |
-| muted | `#5A4038` |
-| accent | `#9C4A2F` |
+| ground | `#F5F5F4` |
+| card | `#FFFFFF` |
+| ink | `#201F1D` |
+| muted | `#666560` |
+| deep green | `#0F3A2B` |
+| green | `#167B54` |
+| gold | `#C79A3E` |
 
-Light only. No dark mode — the tools should look like the Instagram
-account, which is warm and light.
-
-One deliberate exception: `/publisher-wheel` uses its own green and
-gold palette (ground `#F5F5F4`, deep green `#0F3A2B`, green `#167B54`,
-gold `#C79A3E`, ink `#201F1D`). It's still light only.
+Deep green for headings and the big surfaces, gold for the main
+buttons. Light only, no dark mode.
 
 **Secrets live in Vercel, never in the repo.** The repo is public.
 `ANTHROPIC_API_KEY` and `DATABASE_URL` are environment variables set in
@@ -151,6 +149,17 @@ presses it, it brakes by itself after 10 seconds. Arabic only.
 Static page, no function, no database. The list is the `PUBLISHERS`
 array at the top of the script in `publisher-wheel/index.html`, and
 every spin picks from the whole list, however long it is.
+
+### `/publishers`
+
+The same book-fair publishers as cards, grouped by hall (A, B, C), each
+with its booth and a heart. Search matches names and booth numbers and
+ignores hamza and diacritics. The heart builds a wishlist ("قائمتي"),
+kept in the reader's browser (`localStorage`, key `publishers:saved`,
+stored by name). No accounts, nothing sent anywhere.
+
+Static page. The list is a copy of the one in the publisher wheel; when
+it changes, change both.
 
 ---
 
