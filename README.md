@@ -12,6 +12,8 @@ Live at [thetechyreader.com](https://thetechyreader.com), deployed from
 
 ```
 /<tool-name>/index.html   the tool's page — one self-contained file
+/fonts/                   Aref Ruqaa and Cairo, served from this site (OFL)
+/publishers-sw.js         offline copy of /publishers (see below)
 /api/*.js                 Vercel serverless functions
 /schema.sql               the Postgres tables
 /package.json             dependencies (shared across all tools)
@@ -35,6 +37,13 @@ in under a minute and debuggable by reading one file.
 **Arabic-first.** `dir="rtl"`, Arabic copy, and Arabic titles treated as
 the normal case rather than the edge case. Aref Ruqaa for display, Cairo
 for UI.
+
+**Nothing loads from other sites.** The fonts live in `/fonts` and each
+page declares them with `@font-face` at the top of its `<style>`, so no
+visitor's address goes to Google. Every page ends with a small privacy
+line in the footer saying what leaves the phone: nothing, or for
+one-word, the book title to Anthropic. Keep that line true when a tool
+changes.
 
 **The palette, everywhere:**
 

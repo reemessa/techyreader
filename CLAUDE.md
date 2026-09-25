@@ -50,8 +50,10 @@ Don't add features, hardening or "nice to have" extras unless asked.
 
 ## Adding a new tool
 
-1. Create `<tool-name>/index.html`, copying the head (including the two
-   Vercel Analytics script lines), palette and footer from an existing tool.
+1. Create `<tool-name>/index.html`, copying the head (the `@font-face`
+   block and the two Vercel Analytics script lines), palette and footer
+   (including the privacy line) from an existing tool. Don't load fonts or
+   scripts from other sites.
 2. Add a function under `api/` only if it needs a secret or the database,
    and give it its own tables in `schema.sql`.
 3. Add the tool to the table above and to "The tools" in README.md.

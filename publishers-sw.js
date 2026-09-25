@@ -9,10 +9,13 @@
 // background, so a change to the list shows up on the visit after next.
 // Bump VERSION to throw away old copies.
 
-const VERSION = 'publishers-v1';
+const VERSION = 'publishers-v2';
 const PAGE = '/publishers';
-const FONTS_CSS =
-  'https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;600;700&display=swap';
+const FONTS = [
+  'aref-ruqaa-400-arabic', 'aref-ruqaa-400-latin', 'aref-ruqaa-400-latin-ext',
+  'aref-ruqaa-700-arabic', 'aref-ruqaa-700-latin', 'aref-ruqaa-700-latin-ext',
+  'cairo-arabic', 'cairo-latin', 'cairo-latin-ext',
+].map((name) => `/fonts/${name}.woff2`);
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -21,12 +24,7 @@ self.addEventListener('install', (event) => {
 
     // Fonts are a nice-to-have: offline without them, the page falls back
     // to the phone's own font. Never fail the install over them.
-    try {
-      const css = await fetch(FONTS_CSS);
-      await cache.put(FONTS_CSS, css.clone());
-      const files = (await css.text()).match(/https:\/\/fonts\.gstatic\.com\/[^)'"]+/g) || [];
-      await Promise.all(files.map((url) => cache.add(url).catch(() => {})));
-    } catch (e) {}
+    await Promise.all(FONTS.map((url) => cache.add(url).catch(() => {})));
 
     await self.skipWaiting();
   })());
@@ -51,7 +49,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+  if (url.origin === location.origin && url.pathname.startsWith('/fonts/')) {
     event.respondWith(font(event.request));
   }
   // Anything else goes to the network as normal.
@@ -80,6 +78,6 @@ async function font(request) {
   if (cached) return cached;
 
   const response = await fetch(request);
-  if (response.ok || response.type === 'opaque') cache.put(request.url, response.clone());
+  if (response.ok) cache.put(request.url, response.clone());
   return response;
 }

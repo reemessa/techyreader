@@ -224,7 +224,7 @@ export default async function handler(req, res) {
   const ip =
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
   if (rateLimited(ip)) {
-    console.log(`[word] rate limited ${ip}`);
+    console.log(`[word] rate limited "${title}"`);
     return res.status(429).json({ error: "rate_limited" });
   }
 
