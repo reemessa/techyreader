@@ -118,6 +118,22 @@
     text-align: center;
   }
   .lede { margin: 0 0 18px; font-size: 15px; line-height: 1.8; color: var(--muted); text-align: center; }
+  .maplink { display: flex; justify-content: center; margin: -4px 0 18px; }
+  .maplink a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: var(--gold);
+    color: var(--forest);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .maplink a:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  .maplink svg { width: 19px; height: 19px; }
 
   /* Search and filters stay on screen while the list scrolls. */
   .bar {
@@ -263,6 +279,12 @@
 
   <h1>دليل الناشرين</h1>
   <p class="lede">دوّر على دار النشر، وحط قلب على اللي بدك تزورها</p>
+  <p class="maplink">
+    <a href="/publishers/map.webp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>
+      خريطة المعرض
+    </a>
+  </p>
 
   <div class="bar">
     <label class="search">

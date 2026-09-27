@@ -1,4 +1,4 @@
-// Offline copy of /publishers, for a book fair with bad signal.
+// Offline copy of /publishers and its map, for a book fair with bad signal.
 //
 // Lives at the site root rather than in publishers/ because a service
 // worker can only control pages at or below its own folder, and the page
@@ -9,8 +9,9 @@
 // background, so a change to the list shows up on the visit after next.
 // Bump VERSION to throw away old copies.
 
-const VERSION = 'publishers-v2';
+const VERSION = 'publishers-v3';
 const PAGE = '/publishers';
+const MAP = '/publishers/map.webp';
 const FONTS = [
   'aref-ruqaa-400-arabic', 'aref-ruqaa-400-latin', 'aref-ruqaa-400-latin-ext',
   'aref-ruqaa-700-arabic', 'aref-ruqaa-700-latin', 'aref-ruqaa-700-latin-ext',
@@ -21,6 +22,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
     await cache.add(PAGE);
+    await cache.add(MAP).catch(() => {});
 
     // Fonts are a nice-to-have: offline without them, the page falls back
     // to the phone's own font. Never fail the install over them.
@@ -49,8 +51,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.origin === location.origin && url.pathname.startsWith('/fonts/')) {
-    event.respondWith(font(event.request));
+  if (url.origin === location.origin &&
+      (url.pathname.startsWith('/fonts/') || url.pathname === MAP)) {
+    event.respondWith(cacheFirst(event.request));
   }
   // Anything else goes to the network as normal.
 });
@@ -72,7 +75,7 @@ async function page(event) {
   return fresh;
 }
 
-async function font(request) {
+async function cacheFirst(request) {
   const cache = await caches.open(VERSION);
   const cached = await cache.match(request.url);
   if (cached) return cached;

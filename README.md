@@ -170,7 +170,10 @@ every spin picks from the whole list, however long it is.
 The same book-fair publishers as cards, grouped by hall (A, B, C), each
 with its booth, its country's flag and a heart. Shown 24 to a page (`PER_PAGE`), with the
 hall headings counting the whole result. Search matches names, booth numbers and
-countries ("مصر"), and ignores hamza and diacritics. The heart builds a wishlist ("قائمتي"),
+countries ("مصر"), and ignores hamza and diacritics. A "خريطة المعرض"
+button opens the fair's floor plan (`publishers/map.webp`, cropped from
+a photo of the printed map) as a plain image, so readers can pinch to
+zoom. The heart builds a wishlist ("قائمتي"),
 kept in the reader's browser (`localStorage`, key `publishers:saved`,
 stored by name). No accounts, nothing sent anywhere.
 
@@ -179,7 +182,7 @@ it changes, change both.
 
 **Works offline.** `publishers-sw.js` (a service worker, at the site root
 so it can cover `/publishers` without a trailing slash) keeps a copy of
-the page and its fonts on the phone after the first visit. The fair's
+the page, its map and its fonts on the phone after the first visit. The fair's
 internet is bad, so the cached page is shown straight away and refreshed
 in the background: a change to the list reaches a phone on its second
 visit after the deploy. To force everyone onto a fresh copy, bump
