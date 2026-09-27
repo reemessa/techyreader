@@ -235,8 +235,25 @@
   }
   .card .name { font-size: 14px; font-weight: 700; line-height: 1.55; flex: 1; word-break: break-word; }
   .card .foot { display: flex; align-items: center; justify-content: space-between; }
-  .booth { color: var(--green); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .booth {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: -6px -6px;
+    padding: 6px 6px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    font-family: inherit;
+    color: var(--green);
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
   .booth small { color: var(--faint); font-weight: 600; font-size: 12px; }
+  .booth svg { width: 13px; height: 13px; }
+  .booth:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
   .card .where { display: flex; align-items: center; gap: 7px; }
   .flag { font-size: 18px; line-height: 1; }
   .flag svg { display: block; width: 21px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.25); }
@@ -263,6 +280,141 @@
 
   mark { background: rgba(199,154,62,.3); color: inherit; border-radius: 3px; }
 
+  /* The map: a full-screen layer over the list with its own pinch, drag
+     and zoom, so the page underneath never moves. */
+  @property --inv { syntax: '<number>'; inherits: true; initial-value: 1; }
+  body.mapopen { overflow: hidden; }
+  .mapview { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; background: var(--ground); }
+  .mapview[hidden] { display: none; }
+  .maptop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+    background: var(--forest);
+  }
+  .maptop h2 {
+    flex: 1;
+    margin: 0;
+    font-family: 'Aref Ruqaa', Georgia, serif;
+    font-size: 23px;
+    font-weight: 700;
+    color: var(--ground);
+  }
+  .mapclose {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    color: var(--ground);
+    cursor: pointer;
+  }
+  .mapclose svg { width: 20px; height: 20px; }
+  .mapmine {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ground);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .mapmine[hidden] { display: none; }
+  .mapmine svg { width: 16px; height: 16px; }
+  .mapmine[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--forest); }
+  .mapmine[aria-pressed="true"] svg { fill: currentColor; }
+  .mapclose:focus-visible, .mapmine:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .mapstage { flex: 1; position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #FFFFFF; cursor: grab; }
+  .mapcanvas { position: absolute; left: 0; top: 0; width: 1780px; height: 2210px; transform-origin: 0 0; }
+  .mapcanvas.glide { transition: transform .55s cubic-bezier(.2,.8,.2,1), --inv .55s cubic-bezier(.2,.8,.2,1); }
+  .mapcanvas img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-select: none; }
+
+  /* Pins stand on their point and keep the same size on screen whatever
+     the zoom: --inv is 1 / the map's scale. */
+  .pin {
+    position: absolute;
+    width: 34px;
+    height: 44px;
+    margin: -44px 0 0 -17px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transform: scale(var(--inv));
+    transform-origin: 50% 100%;
+  }
+  .pin .bob { position: absolute; inset: 0; }
+  .pin .drop { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+  .pin.mine .drop { fill: var(--heart); stroke: #FFFFFF; stroke-width: 2; }
+  .pin.mine .inside { position: absolute; left: 9px; top: 8px; width: 16px; height: 16px; color: #FFFFFF; fill: #FFFFFF; }
+  .pin.focus { z-index: 1; width: 46px; height: 60px; margin: -60px 0 0 -23px; }
+  .pin.focus .drop { fill: var(--gold); stroke: var(--forest); stroke-width: 1.6; }
+  .pin.focus b {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 15px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1;
+    color: var(--forest);
+  }
+  .pin.focus::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 48px;
+    height: 48px;
+    margin: 0 0 -24px -24px;
+    border: 3px solid var(--gold);
+    border-radius: 50%;
+    animation: ring 1.6s ease-out infinite;
+  }
+  .pin.focus .bob { animation: land .6s cubic-bezier(.3,1.6,.5,1) .4s both; }
+  @keyframes ring { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+  @keyframes land { from { transform: translateY(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .mapcanvas.glide { transition: none; }
+    .pin.focus::before, .pin.focus .bob { animation: none; }
+  }
+
+  .mapnote {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+    background: var(--card);
+    border-top: 1px solid var(--edge);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .mapnote .code {
+    flex: none;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--forest);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .mapnote .names { font-weight: 700; }
+  .mapnote .hint { width: 100%; text-align: center; color: var(--muted); }
+
   footer { margin-top: 48px; text-align: center; font-size: 12px; color: var(--faint); line-height: 1.9; }
   footer a { color: var(--ink); }
   footer .privacy { margin: 14px auto 0; max-width: 380px; font-size: 11px; line-height: 1.8; }
@@ -280,7 +432,7 @@
   <h1>دليل الناشرين</h1>
   <p class="lede">دوّر على دار النشر، وحط قلب على اللي بدك تزورها</p>
   <p class="maplink">
-    <a href="/publishers/map.webp">
+    <a href="/publishers/map.webp" id="mapLink">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"></path><path d="M9 4v14M15 6v14"></path></svg>
       خريطة المعرض
     </a>
@@ -316,6 +468,23 @@
     <p class="privacy">دليل غير رسمي.<br>قائمتك على جهازك بس، بدون حسابات ولا كوكيز، والزيارات بتنحسب بدون ما نعرف مين إنت.</p>
   </footer>
 
+</div>
+
+<div class="mapview" id="mapview" role="dialog" aria-modal="true" aria-labelledby="mapTitle" hidden>
+  <div class="maptop">
+    <h2 id="mapTitle">خريطة المعرض</h2>
+    <button type="button" class="mapmine" id="mapMine" aria-pressed="true"></button>
+    <button type="button" class="mapclose" id="mapClose" aria-label="سكّر الخريطة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+  <div class="mapstage" id="mapStage">
+    <div class="mapcanvas" id="mapCanvas">
+      <img src="/publishers/map.webp" width="1780" height="2210" alt="مخطط قاعات المعرض A و B و C وأرقام الأجنحة" draggable="false">
+      <div id="mapPins"></div>
+    </div>
+  </div>
+  <div class="mapnote" id="mapNote" aria-live="polite"></div>
 </div>
 
 <script>
@@ -512,6 +681,62 @@
     PS: 'فلسطين', GB: 'المملكة المتحدة', MA: 'المغرب', IT: 'إيطاليا'
   };
 
+  // Where each booth's number sits on map.webp (1780×2210 pixels),
+  // measured by hand from the printed floor plan.
+  var BOOTHS = {
+    A1: [560, 1882], A2: [692, 1868], A3: [892, 1696], A4: [1160, 1664],
+    A5: [1280, 1660], A6: [1378, 1702], A7: [1490, 1706], A8: [1640, 1690],
+    A9: [1644, 1556], A10: [1654, 1466], A11: [1644, 1380],
+    A12: [1650, 1296], A13: [1650, 1222], A14: [1638, 1142],
+    A15: [1638, 1068], A16: [1624, 938], A17: [1452, 956], A18: [1390, 954],
+    A19: [1326, 950], A20: [1266, 946], A21: [1204, 942], A22: [1120, 942],
+    A23: [1142, 1548], A24: [1214, 1548], A25: [1294, 1550],
+    A26: [1352, 1550], A27: [1424, 1552], A28: [1506, 1554],
+    A29: [1504, 1512], A30: [1422, 1510], A31: [1354, 1508],
+    A32: [1296, 1506], A33: [1236, 1504], A34: [1146, 1502],
+    A35: [1192, 1404], A36: [1262, 1408], A37: [1320, 1408],
+    A38: [1380, 1410], A39: [1432, 1410], A40: [1504, 1412],
+    A41: [1502, 1366], A42: [1434, 1364], A43: [1376, 1362],
+    A44: [1310, 1362], A45: [1200, 1358], A46: [1200, 1272],
+    A47: [1292, 1276], A48: [1344, 1278], A49: [1414, 1282],
+    A50: [1502, 1286], A51: [1502, 1236], A52: [1414, 1230],
+    A53: [1344, 1226], A54: [1292, 1224], A55: [1200, 1218],
+    A56: [1142, 1122], A57: [1240, 1126], A58: [1312, 1130],
+    A59: [1374, 1132], A60: [1430, 1132], A61: [1504, 1136],
+    A62: [1504, 1094], A63: [1430, 1090], A64: [1374, 1092],
+    A65: [1300, 1086], A66: [1212, 1082], A67: [1126, 1076],
+    A68: [912, 1030], A69: [912, 922], A70: [1020, 1206],
+    B1: [320, 1672], B2: [330, 1602], B3: [190, 1542], B4: [384, 1484],
+    B5: [300, 1480], B6: [246, 1478], B7: [186, 1424], B8: [184, 1370],
+    B9: [182, 1308], B10: [182, 1242], B11: [176, 1180], B12: [168, 1048],
+    B13: [164, 984], B14: [160, 924], B15: [160, 860], B16: [200, 792],
+    B17: [482, 1394], B18: [380, 1398], B19: [282, 1396], B20: [476, 1350],
+    B21: [398, 1352], B22: [334, 1350], B23: [274, 1350], B24: [474, 1260],
+    B25: [372, 1254], B26: [284, 1254], B27: [474, 1212], B28: [372, 1210],
+    B29: [280, 1210], B30: [440, 1122], B31: [328, 1120], B32: [276, 1120],
+    B33: [468, 1072], B34: [368, 1074], B35: [276, 1074], B36: [488, 978],
+    B37: [410, 978], B38: [356, 976], B39: [274, 974], B40: [480, 930],
+    B41: [402, 930], B42: [350, 928], B43: [266, 928], B44: [496, 848],
+    B45: [436, 846], B46: [370, 846], B47: [316, 846], B48: [496, 808],
+    B49: [436, 808], B50: [374, 806], B51: [326, 806], B52: [610, 1038],
+    B53: [608, 942], B54: [608, 866], B55: [654, 1038], B56: [652, 942],
+    B57: [652, 866], B58: [632, 816], B60: [764, 1042], B61: [764, 978],
+    B62: [760, 898],
+    C1: [1054, 780], C2: [1042, 656], C3: [1048, 548], C4: [1038, 506],
+    C5: [948, 374], C6: [890, 370], C7: [828, 370], C8: [768, 370],
+    C9: [670, 340], C10: [584, 358], C11: [526, 358], C12: [466, 394],
+    C13: [280, 364], C14: [238, 484], C15: [238, 544], C16: [334, 682],
+    C17: [334, 608], C18: [334, 550], C19: [380, 682], C20: [380, 608],
+    C21: [380, 550], C22: [356, 504], C23: [466, 682], C24: [462, 618],
+    C25: [462, 544], C26: [512, 682], C27: [508, 618], C28: [508, 544],
+    C29: [460, 508], C30: [594, 690], C31: [594, 614], C32: [594, 550],
+    C33: [642, 678], C34: [642, 570], C35: [614, 510], C36: [742, 680],
+    C37: [742, 590], C38: [742, 528], C39: [786, 680], C40: [786, 590],
+    C41: [786, 528], C42: [870, 682], C43: [870, 576], C44: [914, 682],
+    C45: [914, 576], C46: [890, 520]
+  };
+  var MAP_W = 1780, MAP_H = 2210;
+
   // Flags the phone's emoji can't be trusted to draw right. Many phones
   // still show Syria's old flag for 🇸🇾, so the current one (green, white
   // and black with three red stars) is drawn here instead.
@@ -529,6 +754,8 @@
   }
 
   var SAVED_KEY = 'publishers:saved';
+  var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.8" r="2.2"></circle></svg>';
+  var DROP = '<svg class="drop" viewBox="0 0 32 42" aria-hidden="true"><path d="M16 40.5S3 26.3 3 16a13 13 0 0 1 26 0c0 10.3-13 24.5-13 24.5z"></path></svg>';
   var HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.8 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.4 0 5.6 3.3 4.4 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"></path></svg>';
 
   var input = document.getElementById('q');
@@ -608,7 +835,8 @@
       ? '<span class="flag" role="img" aria-label="' + place + '" title="' + place + '">' + flag(item.country) + '</span>'
       : '';
     var booth = item.booth
-      ? '<span class="booth"><small>جناح </small><span dir="ltr">' + esc(item.booth) + '</span></span>'
+      ? '<button type="button" class="booth" data-booth="' + esc(item.booth) + '" aria-label="جناح ' + esc(item.booth) +
+        '، على الخريطة"><small>جناح </small><span dir="ltr">' + esc(item.booth) + '</span>' + PIN_ICON + '</button>'
       : '';
     booth = '<span class="where">' + flagMark + booth + '</span>';
     return '<div class="card"><div class="name">' + highlight(item.name) + '</div>' +
@@ -687,6 +915,8 @@
   });
 
   list.addEventListener('click', function (e) {
+    var spot = e.target.closest('.booth');
+    if (spot) return openMap(spot.dataset.booth);
     var b = e.target.closest('.heart');
     if (!b) return;
     var item = items[Number(b.dataset.id)];
@@ -700,6 +930,193 @@
     b.setAttribute('aria-pressed', String(on));
     b.setAttribute('aria-label', on ? 'شيل من قائمتي' : 'ضيف لقائمتي');
     updateSavedTab();
+  });
+
+  // ---- The map ----
+  // Opened plain from the button, or from a card's booth with a gold pin
+  // on it. Hearted publishers get pins too, toggled by "قائمتي".
+  var mapview = document.getElementById('mapview');
+  var stage = document.getElementById('mapStage');
+  var canvas = document.getElementById('mapCanvas');
+  var pins = document.getElementById('mapPins');
+  var note = document.getElementById('mapNote');
+  var mineBtn = document.getElementById('mapMine');
+  var closeBtn = document.getElementById('mapClose');
+  var MAX_SCALE = 2;
+  var z = { s: 1, x: 0, y: 0 };
+  var focusBooth = null, showMine = true, opener = null;
+
+  function fitScale() { return Math.min(stage.clientWidth / MAP_W, stage.clientHeight / MAP_H); }
+
+  // Keep the map on screen: centred when smaller than the screen,
+  // edge-to-edge when bigger.
+  function paint(glide) {
+    var W = stage.clientWidth, H = stage.clientHeight;
+    z.s = Math.min(Math.max(z.s, fitScale()), MAX_SCALE);
+    var w = MAP_W * z.s, h = MAP_H * z.s;
+    z.x = w <= W ? (W - w) / 2 : Math.min(0, Math.max(W - w, z.x));
+    z.y = h <= H ? (H - h) / 2 : Math.min(0, Math.max(H - h, z.y));
+    canvas.classList.toggle('glide', !!glide);
+    canvas.style.transform = 'translate(' + z.x + 'px,' + z.y + 'px) scale(' + z.s + ')';
+    canvas.style.setProperty('--inv', 1 / z.s);
+  }
+
+  // Zoom to `s`, keeping the map point under (px, py) where it is.
+  function zoomAt(px, py, s) {
+    s = Math.min(Math.max(s, fitScale()), MAX_SCALE);
+    z.x = px - (px - z.x) * s / z.s;
+    z.y = py - (py - z.y) * s / z.s;
+    z.s = s;
+  }
+
+  function pinHtml(kind, booth) {
+    var p = BOOTHS[booth];
+    var inside = kind === 'focus'
+      ? '<b dir="ltr">' + esc(booth) + '</b>'
+      : HEART.replace('<svg ', '<svg class="inside" ');
+    return '<button type="button" class="pin ' + kind + '" data-booth="' + esc(booth) + '" style="left:' + p[0] +
+      'px;top:' + p[1] + 'px" aria-label="جناح ' + esc(booth) + '"><span class="bob">' + DROP + inside + '</span></button>';
+  }
+
+  function drawPins() {
+    var mine = items.filter(function (item) { return saved[item.name] && BOOTHS[item.booth]; });
+    mineBtn.hidden = !mine.length;
+    mineBtn.setAttribute('aria-pressed', String(showMine));
+    mineBtn.innerHTML = HEART + 'قائمتي (' + mine.length + ')';
+
+    var html = '';
+    if (showMine) {
+      mine.forEach(function (item) { if (item.booth !== focusBooth) html += pinHtml('mine', item.booth); });
+    }
+    if (focusBooth && BOOTHS[focusBooth]) html += pinHtml('focus', focusBooth);
+    pins.innerHTML = html;
+  }
+
+  function showNote(booth) {
+    var here = booth ? items.filter(function (item) { return item.booth === booth; }) : [];
+    note.innerHTML = here.length
+      ? '<span class="code" dir="ltr">' + esc(booth) + '</span><span class="names">' +
+        here.map(function (item) { return esc(item.name); }).join('<br>') + '</span>'
+      : '<span class="hint">قرّب بإصبعين، أو اضغط مرتين على المكان</span>';
+  }
+
+  function openMap(booth) {
+    opener = document.activeElement;
+    focusBooth = BOOTHS[booth] ? booth : null;
+    mapview.hidden = false;
+    document.body.classList.add('mapopen');
+    if (!(history.state && history.state.map)) history.pushState({ map: true }, '');
+    drawPins();
+    showNote(focusBooth);
+
+    // Start from the whole map, then glide in to the booth.
+    z.s = 0;
+    paint(false);
+    if (focusBooth) {
+      void canvas.offsetWidth;
+      var p = BOOTHS[focusBooth];
+      var s = Math.min(MAX_SCALE, Math.max(fitScale() * 3, 0.7));
+      z.x = stage.clientWidth / 2 - p[0] * s;
+      z.y = stage.clientHeight / 2 - p[1] * s;
+      z.s = s;
+      paint(true);
+    }
+    closeBtn.focus();
+  }
+
+  function hideMap() {
+    mapview.hidden = true;
+    document.body.classList.remove('mapopen');
+    if (opener && opener.focus) opener.focus();
+  }
+
+  // The phone's back button closes the map rather than leaving the page.
+  function closeMap() {
+    if (history.state && history.state.map) history.back(); else hideMap();
+  }
+  window.addEventListener('popstate', function () {
+    if (!mapview.hidden && !(history.state && history.state.map)) hideMap();
+  });
+  if (history.state && history.state.map) history.replaceState(null, '');
+
+  document.getElementById('mapLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    openMap(null);
+  });
+  closeBtn.addEventListener('click', closeMap);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !mapview.hidden) closeMap();
+  });
+  mineBtn.addEventListener('click', function () {
+    showMine = !showMine;
+    drawPins();
+  });
+  window.addEventListener('resize', function () { if (!mapview.hidden) paint(false); });
+
+  // Drag with one finger, pinch with two, double-tap to zoom in (or back
+  // out). Pointers are followed on window so a tap on a pin still clicks.
+  var fingers = {}, moved = false, downAt = null, lastTap = 0;
+
+  function centre() {
+    var ids = Object.keys(fingers), x = 0, y = 0;
+    ids.forEach(function (id) { x += fingers[id].x; y += fingers[id].y; });
+    x /= ids.length; y /= ids.length;
+    var d = ids.length > 1
+      ? Math.hypot(fingers[ids[0]].x - fingers[ids[1]].x, fingers[ids[0]].y - fingers[ids[1]].y)
+      : 0;
+    return { x: x, y: y, d: d };
+  }
+
+  stage.addEventListener('pointerdown', function (e) {
+    if (!Object.keys(fingers).length) {
+      moved = false;
+      downAt = { x: e.clientX, y: e.clientY };
+    }
+    fingers[e.pointerId] = { x: e.clientX, y: e.clientY };
+  });
+
+  window.addEventListener('pointermove', function (e) {
+    if (!fingers[e.pointerId]) return;
+    var a = centre();
+    fingers[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var b = centre();
+    if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8 || b.d) moved = true;
+    if (!moved) return;
+    var r = stage.getBoundingClientRect();
+    z.x += b.x - a.x;
+    z.y += b.y - a.y;
+    if (a.d && b.d) zoomAt(b.x - r.left, b.y - r.top, z.s * b.d / a.d);
+    paint(false);
+  });
+
+  function lift(e) {
+    if (!fingers[e.pointerId]) return;
+    delete fingers[e.pointerId];
+    if (e.type !== 'pointerup' || moved || Object.keys(fingers).length) return;
+    var now = Date.now();
+    if (now - lastTap < 300) {
+      var r = stage.getBoundingClientRect(), fit = fitScale();
+      zoomAt(e.clientX - r.left, e.clientY - r.top,
+        z.s > fit * 1.5 ? fit : Math.min(MAX_SCALE, Math.max(fit * 3, 0.7)));
+      paint(true);
+      lastTap = 0;
+    } else {
+      lastTap = now;
+    }
+  }
+  window.addEventListener('pointerup', lift);
+  window.addEventListener('pointercancel', lift);
+
+  stage.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var r = stage.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, z.s * Math.exp(-e.deltaY * 0.0015));
+    paint(false);
+  }, { passive: false });
+
+  pins.addEventListener('click', function (e) {
+    var pin = e.target.closest('.pin');
+    if (pin && !moved) showNote(pin.dataset.booth);
   });
 
   render();

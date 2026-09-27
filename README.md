@@ -172,8 +172,12 @@ with its booth, its country's flag and a heart. Shown 24 to a page (`PER_PAGE`),
 hall headings counting the whole result. Search matches names, booth numbers and
 countries ("مصر"), and ignores hamza and diacritics. A "خريطة المعرض"
 button opens the fair's floor plan (`publishers/map.webp`, cropped from
-a photo of the printed map) as a plain image, so readers can pinch to
-zoom. The heart builds a wishlist ("قائمتي"),
+a photo of the printed map) in a full-screen viewer with its own pinch,
+drag and double-tap zoom. Tapping a card's booth opens the map zoomed
+onto that booth with a gold pin, and every hearted publisher gets a pin
+too ("قائمتي" in the viewer turns them off). Booth positions are the
+`BOOTHS` table in the page, measured by hand in map.webp pixels; a
+booth missing from it opens the map without a pin. The heart builds a wishlist ("قائمتي"),
 kept in the reader's browser (`localStorage`, key `publishers:saved`,
 stored by name). No accounts, nothing sent anywhere.
 
