@@ -252,6 +252,44 @@
     cursor: pointer;
   }
   .booth small { color: var(--faint); font-weight: 600; font-size: 12px; }
+
+  /* A reader's own note on a hearted publisher, shown in قائمتي. 16px so
+     iPhones don't zoom the page when it's tapped. */
+  .note {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 8px;
+    border: 1px dashed var(--edge);
+    border-radius: 8px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.5;
+    resize: none;
+    overflow: hidden;
+  }
+  .note::placeholder { color: var(--faint); font-size: 13px; }
+  .note:focus { outline: 2px solid var(--green); outline-offset: 1px; border-style: solid; background: var(--card); }
+
+  /* ✓ and ✕ appear only while the note differs from what's saved. */
+  .noteacts { display: none; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+  .notebox.dirty .noteacts { display: flex; }
+  .noteacts button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .noteacts svg { width: 18px; height: 18px; }
+  .notesave { border: none; background: var(--green); color: #FFFFFF; }
+  .notecancel { border: 1px solid var(--edge); background: var(--card); color: var(--muted); }
+  .noteacts button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .booth svg { width: 13px; height: 13px; }
   .booth:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
   .card .where { display: flex; align-items: center; gap: 7px; }
@@ -754,6 +792,9 @@
   }
 
   var SAVED_KEY = 'publishers:saved';
+  var NOTES_KEY = 'publishers:notes';
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+  var CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>';
   var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.8" r="2.2"></circle></svg>';
   var DROP = '<svg class="drop" viewBox="0 0 32 42" aria-hidden="true"><path d="M16 40.5S3 26.3 3 16a13 13 0 0 1 26 0c0 10.3-13 24.5-13 24.5z"></path></svg>';
   var HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.8 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.4 0 5.6 3.3 4.4 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"></path></svg>';
@@ -800,6 +841,16 @@
     (JSON.parse(localStorage.getItem(SAVED_KEY)) || []).forEach(function (name) { saved[name] = true; });
   } catch (e) {}
 
+  // Notes are kept by name too, and survive un-hearting, so an
+  // accidental tap on the heart doesn't lose what was written.
+  var notes = {};
+  try { notes = JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch (e) {}
+
+  function persistNotes() {
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }
+    catch (e) { /* private mode: notes last until the page closes */ }
+  }
+
   function persist() {
     try { localStorage.setItem(SAVED_KEY, JSON.stringify(Object.keys(saved))); }
     catch (e) { /* private mode: hearts last until the page closes */ }
@@ -839,7 +890,16 @@
         '، على الخريطة"><small>جناح </small><span dir="ltr">' + esc(item.booth) + '</span>' + PIN_ICON + '</button>'
       : '';
     booth = '<span class="where">' + flagMark + booth + '</span>';
-    return '<div class="card"><div class="name">' + highlight(item.name) + '</div>' +
+    var note = filter === 'saved'
+      ? '<div class="notebox" data-id="' + item.id + '">' +
+        '<textarea class="note" rows="1" maxlength="300" placeholder="اكتب ملاحظة شخصية (تظهر لك فقط)" aria-label="ملاحظة على ' +
+        esc(item.name) + '">' + esc(notes[item.name] || '') + '</textarea>' +
+        '<div class="noteacts">' +
+        '<button type="button" class="notecancel" aria-label="تجاهل التعديل">' + CROSS + '</button>' +
+        '<button type="button" class="notesave" aria-label="احفظ الملاحظة">' + CHECK + '</button>' +
+        '</div></div>'
+      : '';
+    return '<div class="card"><div class="name">' + highlight(item.name) + '</div>' + note +
       '<div class="foot">' + booth + heartButton(item) + '</div></div>';
   }
 
@@ -891,9 +951,28 @@
       return '<section class="hall"><h2>' + title + ' <span>' + totals[h] + '</span></h2>' +
         '<div class="cards">' + groups[h].map(card).join('') + '</div></section>';
     }).join('');
+    list.querySelectorAll('.note').forEach(grow);
   }
 
   input.addEventListener('input', render);
+
+  function grow(box) {
+    box.style.height = 'auto';
+    box.style.height = box.scrollHeight + 2 + 'px';
+  }
+
+  // A note is only saved with ✓; ✕ puts back what was saved.
+  function noteParts(el) {
+    var wrap = el.closest('.notebox');
+    return wrap && { wrap: wrap, box: wrap.querySelector('.note'), name: items[Number(wrap.dataset.id)].name };
+  }
+
+  list.addEventListener('input', function (e) {
+    var n = e.target.classList.contains('note') && noteParts(e.target);
+    if (!n) return;
+    n.wrap.classList.toggle('dirty', n.box.value.trim() !== (notes[n.name] || '').trim());
+    grow(n.box);
+  });
 
   // Turn the page and bring the top of the list back under the search bar.
   function turn(step) {
@@ -915,6 +994,18 @@
   });
 
   list.addEventListener('click', function (e) {
+    var act = e.target.closest('.notesave, .notecancel');
+    if (act) {
+      var n = noteParts(act);
+      if (act.classList.contains('notesave')) {
+        if (n.box.value.trim()) notes[n.name] = n.box.value.trim(); else delete notes[n.name];
+        persistNotes();
+      }
+      n.box.value = notes[n.name] || '';
+      n.wrap.classList.remove('dirty');
+      grow(n.box);
+      return;
+    }
     var spot = e.target.closest('.booth');
     if (spot) return openMap(spot.dataset.booth);
     var b = e.target.closest('.heart');

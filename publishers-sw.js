@@ -9,7 +9,7 @@
 // background, so a change to the list shows up on the visit after next.
 // Bump VERSION to throw away old copies.
 
-const VERSION = 'publishers-v4';
+const VERSION = 'publishers-v5';
 const PAGE = '/publishers';
 const MAP = '/publishers/map.webp';
 const FONTS = [

@@ -179,7 +179,12 @@ too ("قائمتي" in the viewer turns them off). Booth positions are the
 `BOOTHS` table in the page, measured by hand in map.webp pixels; a
 booth missing from it opens the map without a pin. The heart builds a wishlist ("قائمتي"),
 kept in the reader's browser (`localStorage`, key `publishers:saved`,
-stored by name). No accounts, nothing sent anywhere.
+stored by name). In قائمتي each card also has a note box for the
+reader's own note, saved with ✓ or thrown away with ✕ (the two
+buttons show only while the note has unsaved changes). Notes are kept
+the same way (key `publishers:notes`, by name;
+a note stays if the heart is removed, and comes back with it). No
+accounts, nothing sent anywhere.
 
 Static page. The list is a copy of the one in the publisher wheel; when
 it changes, change both.
