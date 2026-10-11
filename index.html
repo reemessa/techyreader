@@ -145,6 +145,7 @@
     --blue: #A9C3D6;
     --sage: #B7C4A4;
     --blush: #F1E3E0;
+    --desk: #EAE0D2;
     --wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
     --wobble-2: 15px 225px 15px 255px / 255px 15px 225px 15px;
     --shadow: 0 1px 1px rgba(46,42,38,.08), 0 12px 24px -14px rgba(46,42,38,.45);
@@ -162,8 +163,7 @@
   }
   body {
     margin: 0;
-    background-color: var(--paper);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(169,195,214,.22) 31px 32px);
+    background-color: var(--desk);
     color: var(--ink);
     font-family: var(--body);
     font-size: 1.075rem;
@@ -171,6 +171,22 @@
   }
   html:lang(ar) body { font-size: 1.2rem; line-height: 1.9; }
 
+  /* The ruled page the whole site sits on, with plain desk on either side. */
+  .sheet {
+    max-width: 1180px;
+    margin: 32px auto;
+    overflow: clip;
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(169,195,214,.22) 31px 32px);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(46,42,38,.08), 0 18px 40px -20px rgba(46,42,38,.35);
+  }
+  @media (max-width: 1259px) {
+    .sheet { margin: 32px 40px; }
+  }
+  @media (max-width: 759px) {
+    .sheet { margin: 0; border-radius: 0; box-shadow: none; }
+  }
   .wrap { max-width: 1080px; margin-inline: auto; padding-inline: 20px; }
   section { scroll-margin-block-start: 16px; }
 
@@ -482,6 +498,7 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+<div class="sheet">
 
 <header class="nav">
   <div class="wrap">
@@ -630,6 +647,7 @@
     <span data-i18n="copyright"></span>
   </div>
 </footer>
+</div>
 
 <script>
   const COPY = {
