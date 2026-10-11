@@ -842,34 +842,24 @@
 
     const W = 1, H = 1.36, SEG = 28, GAP = 0.003;
     const TW = 768, TH = Math.round(TW * H);
-    const INK = '#2E2A26', SOFT = '#4A403A', ROSE = '#8E4A51';
-    const TAPE = { study: 'rgba(169,195,214,.8)', work: 'rgba(232,195,195,.85)', bird: 'rgba(183,196,164,.9)' };
-
-    // Three looks to choose from while the design settles:
-    // ?book=drawn (the default), ?book=notebook or ?book=minimal.
-    const LOOKS = {
-      drawn: { paper: '#FFFDF7', lines: false, tape: true, sketch: true, gutter: 0.07, light: [3.2, 0.3], board: { color: 0xF3EADC, pad: 0.012, radius: 0 } },
-      notebook: { paper: '#FBF5EA', lines: true, tape: false, sketch: false, gutter: 0.22, light: [2.3, 1.2], board: { color: 0xA8636B, pad: 0.05, radius: 0.06 }, cloth: '#A8636B', edges: true, ribbon: true, shadow: true },
-      minimal: { paper: '#FFFFFF', lines: false, tape: false, sketch: false, gutter: 0.1, light: [2.6, 0.8], board: null, shadow: true },
-    };
-    const look = LOOKS[new URLSearchParams(location.search).get('book')] || LOOKS.drawn;
+    const INK = '#2E2A26', SOFT = '#4A403A', ROSE = '#8E4A51', PAPER = '#FBF5EA', CLOTH = '#A8636B';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cbb8, look.light[0]));
-    const sun = new THREE.DirectionalLight(0xffffff, look.light[1]);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cbb8, 2.3));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
     sun.position.set(-1.5, 2, 4);
     scene.add(sun);
 
-    const holder = new THREE.Group(); // tilts towards the pointer
+    const holder = new THREE.Group(); // leans the book back a little
     const pages = new THREE.Group(); // mirrored for Arabic, which opens the other way
     holder.rotation.x = -0.2;
     holder.add(pages);
     scene.add(holder);
 
-    // What the pages rest on, depending on the look: a shadow, the cover
-    // boards, the block of pages and a ribbon.
-    if (look.shadow) {
+    // A cloth-bound notebook: a soft shadow, rounded cover boards, the block
+    // of pages and a ribbon.
+    {
       const c = document.createElement('canvas');
       c.width = c.height = 256;
       const g = c.getContext('2d'), glow = g.createRadialGradient(128, 128, 10, 128, 128, 128);
@@ -881,9 +871,8 @@
       shadow.position.set(0, -0.05, -0.08);
       pages.add(shadow);
     }
-    if (look.board) {
-      const { color, pad, radius: r } = look.board;
-      const w = W + pad, h = H + pad * 1.4, shape = new THREE.Shape();
+    {
+      const r = 0.06, w = W + 0.05, h = H + 0.07, shape = new THREE.Shape();
       shape.moveTo(0, -h / 2);
       shape.lineTo(w - r, -h / 2);
       shape.quadraticCurveTo(w, -h / 2, w, -h / 2 + r);
@@ -891,7 +880,7 @@
       shape.quadraticCurveTo(w, h / 2, w - r, h / 2);
       shape.lineTo(0, h / 2);
       shape.lineTo(0, -h / 2);
-      const material = new THREE.MeshLambertMaterial({ color });
+      const material = new THREE.MeshLambertMaterial({ color: CLOTH });
       for (const side of [-1, 1]) {
         const cover = new THREE.Mesh(new THREE.ShapeGeometry(shape, 6), material);
         cover.scale.x = side;
@@ -899,7 +888,7 @@
         pages.add(cover);
       }
     }
-    if (look.edges) {
+    {
       const material = new THREE.MeshLambertMaterial({ color: 0xEFE5D3 });
       for (const side of [-1, 1]) {
         const block = new THREE.Mesh(new THREE.BoxGeometry(W + 0.008, H, 0.025), material);
@@ -907,7 +896,7 @@
         pages.add(block);
       }
     }
-    if (look.ribbon) {
+    {
       const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.035, 0.26), new THREE.MeshLambertMaterial({ color: 0x8E4A51 }));
       ribbon.position.set(0.09, -H / 2 - 0.06, -0.004);
       pages.add(ribbon);
@@ -1000,60 +989,24 @@
 
     function shade(ctx, spine) {
       const g = spine === 'left' ? ctx.createLinearGradient(0, 0, 110, 0) : ctx.createLinearGradient(TW, 0, TW - 110, 0);
-      g.addColorStop(0, `rgba(46,42,38,${look.gutter})`);
+      g.addColorStop(0, 'rgba(46,42,38,.22)');
       g.addColorStop(1, 'rgba(46,42,38,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, TW, TH);
     }
 
-    // A wobbly ink line round the three free edges of a page.
-    function sketch(ctx, spine) {
-      const inset = 24, outer = spine === 'left' ? TW - inset : inset, inner = spine === 'left' ? 0 : TW;
-      const corners = [[inner, inset], [outer, inset], [outer, TH - inset], [inner, TH - inset]];
-      ctx.save();
-      ctx.strokeStyle = INK;
-      ctx.lineCap = ctx.lineJoin = 'round';
-      for (const [pass, width, alpha] of [[0, 3.2, 1], [1, 1.6, 0.4]]) {
-        ctx.lineWidth = width;
-        ctx.globalAlpha = alpha;
+    function paper(ctx, spine) {
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, TW, TH);
+      ctx.strokeStyle = 'rgba(169,195,214,.45)';
+      ctx.lineWidth = 2;
+      for (let y = 128; y < TH - 60; y += 48) {
         ctx.beginPath();
-        ctx.moveTo(...corners[0]);
-        for (let c = 1; c < corners.length; c++) {
-          const [x0, y0] = corners[c - 1], [x1, y1] = corners[c];
-          for (let t = 1; t <= 12; t++) {
-            const f = t / 12, wobble = Math.sin((c * 31 + t * 7 + pass * 13) * 1.7) * 2.2;
-            ctx.lineTo(x0 + (x1 - x0) * f + (x0 === x1 ? wobble : 0), y0 + (y1 - y0) * f + (y0 === y1 ? wobble : 0));
-          }
-        }
+        ctx.moveTo(40, y);
+        ctx.lineTo(TW - 40, y);
         ctx.stroke();
       }
-      ctx.restore();
-    }
-
-    function paper(ctx, spine) {
-      ctx.fillStyle = look.paper;
-      ctx.fillRect(0, 0, TW, TH);
-      if (look.lines) {
-        ctx.strokeStyle = 'rgba(169,195,214,.45)';
-        ctx.lineWidth = 2;
-        for (let y = 128; y < TH - 60; y += 48) {
-          ctx.beginPath();
-          ctx.moveTo(40, y);
-          ctx.lineTo(TW - 40, y);
-          ctx.stroke();
-        }
-      }
       shade(ctx, spine);
-      if (look.sketch) sketch(ctx, spine);
-    }
-
-    function tape(ctx, color, x, y, angle) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-      ctx.fillStyle = color;
-      ctx.fillRect(-95, -26, 190, 52);
-      ctx.restore();
     }
 
     // The same doodles as the card list, drawn twice like a pencil sketch.
@@ -1074,30 +1027,24 @@
 
     function coverPage(spine) {
       return (ctx) => {
-        if (look.cloth) {
-          // Cloth: the cover colour with a faint weave.
-          ctx.fillStyle = look.cloth;
-          ctx.fillRect(0, 0, TW, TH);
-          ctx.fillStyle = 'rgba(255,255,255,.05)';
-          for (let i = 0; i < TW; i += 6) ctx.fillRect(i, 0, 2, TH);
-          for (let i = 0; i < TH; i += 6) ctx.fillRect(0, i, TW, 2);
-          shade(ctx, spine);
-        } else paper(ctx, spine);
-        const birds = look.cloth ? '#FBF5EA' : INK;
-        doodle(ctx, 'bird', TW / 2 - 130, 250, 96, birds);
-        doodle(ctx, 'bird', TW / 2 + 40, 200, 76, look.cloth ? '#F1E3E0' : ROSE);
-        doodle(ctx, 'bird', TW / 2 + 150, 280, 60, birds);
+        // Cloth with a faint weave, birds, and a paper label.
+        ctx.fillStyle = CLOTH;
+        ctx.fillRect(0, 0, TW, TH);
+        ctx.fillStyle = 'rgba(255,255,255,.05)';
+        for (let i = 0; i < TW; i += 6) ctx.fillRect(i, 0, 2, TH);
+        for (let i = 0; i < TH; i += 6) ctx.fillRect(0, i, TW, 2);
+        shade(ctx, spine);
+        doodle(ctx, 'bird', TW / 2 - 130, 250, 96, PAPER);
+        doodle(ctx, 'bird', TW / 2 + 40, 200, 76, '#F1E3E0');
+        doodle(ctx, 'bird', TW / 2 + 150, 280, 60, PAPER);
         ctx.save();
         ctx.translate(TW / 2, 540);
-        ctx.rotate(look.board ? -0.025 : 0);
-        if (look.board) {
-          ctx.fillStyle = '#FFFDF7';
-          ctx.fillRect(-260, -150, 520, 300);
-          ctx.strokeStyle = INK;
-          ctx.lineWidth = 5;
-          ctx.strokeRect(-260, -150, 520, 300);
-        }
-        if (look.tape) tape(ctx, TAPE.work, 0, -150, 0.04);
+        ctx.rotate(-0.025);
+        ctx.fillStyle = '#FFFDF7';
+        ctx.fillRect(-260, -150, 520, 300);
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 5;
+        ctx.strokeRect(-260, -150, 520, 300);
         ctx.direction = ar() ? 'rtl' : 'ltr';
         ctx.textAlign = 'center';
         ctx.fillStyle = INK;
@@ -1113,7 +1060,6 @@
     function picturePage(stop, kind, spine) {
       return (ctx) => {
         paper(ctx, spine);
-        if (look.tape) tape(ctx, TAPE[kind], TW / 2, 70, -0.05);
         ctx.direction = ar() ? 'rtl' : 'ltr';
         ctx.textAlign = 'center';
         ctx.fillStyle = INK;
@@ -1225,7 +1171,7 @@
       go(current + ((e.key === 'ArrowRight') !== ar() ? 1 : -1));
     });
 
-    let downX = null, tiltX = 0, tiltY = 0;
+    let downX = null;
     stage.addEventListener('pointerdown', (e) => { downX = e.clientX; });
     stage.addEventListener('pointercancel', () => { downX = null; });
     stage.addEventListener('pointerup', (e) => {
@@ -1238,14 +1184,6 @@
         go(current + (narrow || (e.clientX > r.left + r.width / 2) !== ar() ? 1 : -1));
       }
     });
-    stage.addEventListener('pointermove', (e) => {
-      if (e.pointerType !== 'mouse') return;
-      const r = stage.getBoundingClientRect();
-      tiltX = (e.clientX - r.left) / r.width - 0.5;
-      tiltY = (e.clientY - r.top) / r.height - 0.5;
-      kick();
-    });
-    stage.addEventListener('pointerleave', () => { tiltX = tiltY = 0; kick(); });
 
     // Draw only while something moves.
     let running = false, last = 0;
@@ -1270,10 +1208,6 @@
         }
         bend(leaf, k);
       });
-      const rx = -0.2 + (reduce ? 0 : tiltY * 0.12), ry = reduce ? 0 : tiltX * 0.25;
-      holder.rotation.x += (rx - holder.rotation.x) * Math.min(1, dt * 6);
-      holder.rotation.y += (ry - holder.rotation.y) * Math.min(1, dt * 6);
-      if (Math.abs(rx - holder.rotation.x) + Math.abs(ry - holder.rotation.y) > 0.0005) moving = true;
       renderer.render(scene, camera);
       if (moving) requestAnimationFrame(tick);
       else running = false;
