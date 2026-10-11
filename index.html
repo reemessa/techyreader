@@ -898,14 +898,6 @@
       pages.add(ribbon);
     }
 
-    // Inside the front cover, facing the cover: a photo of me taped to the page.
-    const endpaper = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshLambertMaterial());
-    endpaper.position.set(-W / 2, 0, -0.001);
-    pages.add(endpaper);
-    const photo = new Image();
-    photo.src = '/assets/portfolio/reem-journey.webp';
-    const photoReady = photo.decode().catch(() => {});
-
     let lang = 'en', stops = [], leaves = [], current = 0, narrow = false;
     const ar = () => lang === 'ar';
     const num = (n) => n.toLocaleString(ar() ? 'ar-EG' : 'en-US');
@@ -1061,28 +1053,6 @@
       };
     }
 
-    function photoPage(spine) {
-      return (ctx) => {
-        paper(ctx, spine);
-        if (!photo.naturalWidth) return;
-        const w = 500, h = Math.round((w * photo.naturalHeight) / photo.naturalWidth);
-        ctx.save();
-        ctx.translate(TW / 2, TH / 2);
-        ctx.rotate(-0.035);
-        ctx.shadowColor = 'rgba(46,42,38,.25)';
-        ctx.shadowBlur = 18;
-        ctx.shadowOffsetY = 6;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(-w / 2 - 16, -h / 2 - 16, w + 32, h + 32);
-        ctx.shadowColor = 'transparent';
-        ctx.drawImage(photo, -w / 2, -h / 2, w, h);
-        ctx.rotate(0.06);
-        ctx.fillStyle = 'rgba(232,195,195,.8)';
-        ctx.fillRect(-80, -h / 2 - 40, 160, 48);
-        ctx.restore();
-      };
-    }
-
     function picturePage(stop, kind, spine) {
       return (ctx) => {
         paper(ctx, spine);
@@ -1150,9 +1120,6 @@
           mesh.material.needsUpdate = true;
         }
       });
-      if (endpaper.material.map) endpaper.material.map.dispose();
-      endpaper.material.map = texture(photoPage(ar() ? 'left' : 'right'), ar());
-      endpaper.material.needsUpdate = true;
     }
 
     function layout() {
@@ -1247,7 +1214,7 @@
       stops = COPY[lang].journey;
       const sample = COPY[lang].journeyTitle + ' ' + stops.map((s) => Object.values(s).join(' ')).join(' ');
       const faces = ar() ? ['700 40px "Aref Ruqaa"', '400 40px Amiri', '700 40px Amiri'] : ['700 40px Caveat', '400 40px Lora', '700 40px Lora'];
-      await Promise.all([photoReady, ...faces.map((f) => document.fonts.load(f, sample))]).catch(() => {});
+      await Promise.all(faces.map((f) => document.fonts.load(f, sample))).catch(() => {});
       if (!leaves.length) leaves = Array.from({ length: stops.length + 1 }, makeLeaf);
       paint();
       chips();
