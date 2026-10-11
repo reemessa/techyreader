@@ -376,11 +376,20 @@
   .hire .contact { margin-block-start: 22px; }
 
   /* Footer */
-  footer { text-align: center; padding-block: 24px 48px; color: var(--ink-soft); }
-  footer .made { font-family: var(--hand); font-size: 1.45rem; }
-  html:lang(ar) footer .made { font-size: 1.2rem; }
-  footer .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; margin-block-start: 10px; }
-  footer .privacy { margin: 16px auto 0; max-width: 380px; font-size: .85rem; line-height: 1.8; }
+  footer { padding-block: 40px 32px; color: var(--ink-soft); border-block-start: 2px dashed rgba(46,42,38,.45); }
+  .foot-grid { display: grid; gap: 32px 24px; grid-template-columns: repeat(2, 1fr); }
+  .foot-brand { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start; color: var(--ink); }
+  .foot-brand p { margin-block-start: 8px; color: var(--ink-soft); font-size: .95rem; }
+  footer h2 { font-size: 1.3rem; font-weight: 600; color: var(--ink-soft); margin-block-end: 10px; }
+  html:lang(ar) footer h2 { font-size: 1.05rem; }
+  footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  footer ul a { color: var(--ink); text-decoration: none; }
+  footer ul a:hover { text-decoration: underline wavy var(--rose-deep); }
+  .foot-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; margin-block-start: 32px; padding-block-start: 18px; border-block-start: 2px dashed rgba(46,42,38,.25); font-size: .85rem; }
+  @media (min-width: 760px) {
+    .foot-grid { grid-template-columns: 1.4fr repeat(3, 1fr); }
+    .foot-brand { grid-column: auto; }
+  }
 
   @media (max-width: 639px) {
     .card { transform: rotate(calc(var(--tilt, 0deg) / 2)); }
@@ -531,12 +540,40 @@
 </main>
 
 <footer class="wrap">
-  <p class="made" data-i18n="made"></p>
-  <p class="links">
-    <a href="https://www.linkedin.com/in/reemessa/">LinkedIn</a>
-    <a href="https://www.instagram.com/reemiii_93/">Instagram <span dir="ltr">@reemiii_93</span></a>
-  </p>
-  <p class="privacy" data-i18n="privacy"></p>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <span class="brand-big" dir="auto" data-i18n="brandBig"></span>
+      <span class="brand-small" dir="auto" data-i18n="brandSmall"></span>
+      <p data-i18n="heroTitle"></p>
+    </div>
+    <div>
+      <h2 data-i18n="workTitle"></h2>
+      <ul>
+        <li><a href="https://readwaraq.com" data-i18n="footWaraq"></a></li>
+        <li><a href="/publishers" data-i18n="app1"></a></li>
+        <li><a href="/publisher-wheel" data-i18n="app2"></a></li>
+        <li><a href="/one-word" data-i18n="app3"></a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 data-i18n="navHire"></h2>
+      <ul>
+        <li><a href="mailto:reem@thetechyreader.com" data-i18n="footEmail"></a></li>
+        <li data-i18n="place"></li>
+      </ul>
+    </div>
+    <div>
+      <h2 data-i18n="footElsewhere"></h2>
+      <ul>
+        <li><a href="https://www.linkedin.com/in/reemessa/">LinkedIn</a></li>
+        <li><a href="https://www.instagram.com/reemiii_93/">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span data-i18n="copyright"></span>
+    <span data-i18n="privacy"></span>
+  </div>
 </footer>
 
 <script>
@@ -585,8 +622,11 @@
       hireBody: 'I build the quiet systems behind the shelves: sales and stock, accounting, online catalogs and book fair tools. Built with the same care I\'d want for my own library, in Arabic and English.',
       hireCta: 'Tell me about your shop',
       place: 'Amman, Jordan',
-      made: 'made by hand, for readers · Reem Issa, the techy reader',
-      privacy: 'No accounts and no cookies. Visits are counted without knowing who you are.',
+      footWaraq: 'Waraq',
+      footEmail: 'Email me',
+      footElsewhere: 'Elsewhere',
+      copyright: '© {year} Reem Issa · the techy reader',
+      privacy: 'no cookies · no accounts',
     },
     ar: {
       brandBig: 'ريم عيسى',
@@ -632,8 +672,11 @@
       hireBody: 'أبني الأنظمة الهادئة خلف الرفوف: المبيعات والمخزون، والمحاسبة، والفهارس الإلكترونية، وأدوات معارض الكتب. بالعناية نفسها التي أريدها لمكتبتي، بالعربية والإنجليزية.',
       hireCta: 'حدّثني عن مكتبتك',
       place: 'عمّان، الأردن',
-      made: 'صُنع باليد، للقرّاء · ريم عيسى، القارئة التقنية',
-      privacy: 'بلا حسابات ولا كوكيز، والزيارات تُحسب دون أن نعرف من أنت.',
+      footWaraq: 'ورق',
+      footEmail: 'راسلني',
+      footElsewhere: 'تابعني',
+      copyright: '© {year} ريم عيسى · القارئة التقنية',
+      privacy: 'بلا كوكيز · بلا حسابات',
     },
   };
 
@@ -644,7 +687,8 @@
     const t = COPY[lang];
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t[el.dataset.i18n]; });
+    const year = new Date().getFullYear().toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US', { useGrouping: false });
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t[el.dataset.i18n].replace('{year}', year); });
     document.querySelectorAll('[data-i18n-alt]').forEach((el) => { el.alt = t[el.dataset.i18nAlt]; });
     document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t[el.dataset.i18nAria]); });
     toggle.setAttribute('aria-label', t.toggle);
