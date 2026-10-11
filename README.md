@@ -40,10 +40,10 @@ for UI.
 
 **Nothing loads from other sites.** The fonts live in `/fonts` and each
 page declares them with `@font-face` at the top of its `<style>`, so no
-visitor's address goes to Google. Every page ends with a small privacy
-line in the footer saying what leaves the phone: nothing, or for
+visitor's address goes to Google. Every tool page ends with a small
+privacy line in the footer saying what leaves the phone: nothing, or for
 one-word, the book title to Anthropic. Keep that line true when a tool
-changes.
+changes. The home page (the portfolio) has no privacy line, on purpose.
 
 **The palette, everywhere:**
 
