@@ -249,16 +249,30 @@
   .btn:hover { transform: rotate(-1.5deg) translateY(-1px); }
   .btn-fill { background: var(--rose); box-shadow: 3px 4px 0 var(--ink); }
   .btn-outline { border-style: dashed; }
-  .art { display: block; width: 100%; max-width: 460px; height: auto; margin-inline: auto; }
-  .art-label { font-family: var(--hand); font-size: 30px; font-weight: 700; }
-  html:lang(ar) .art-label { font-size: 24px; }
-  .bird { animation: drift var(--t, 7s) ease-in-out var(--d, 0s) infinite alternate; transform-box: fill-box; transform-origin: center; }
-  @keyframes drift {
-    from { transform: translate(0, 0) rotate(0deg); }
-    to { transform: translate(5px, -10px) rotate(-5deg); }
+  .portrait {
+    position: relative;
+    max-width: 360px;
+    margin: 12px auto 0;
+    padding: 12px 12px 16px;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 6px 14px 8px 12px / 12px 6px 14px 8px;
+    box-shadow: var(--shadow);
+    transform: rotate(2deg);
   }
+  .portrait::before {
+    content: '';
+    position: absolute;
+    inset-block-start: -14px;
+    inset-inline-start: calc(50% - 50px);
+    width: 100px;
+    height: 28px;
+    background: rgba(232,195,195,.75);
+    box-shadow: 0 1px 2px rgba(46,42,38,.12);
+    transform: rotate(-3deg);
+  }
+  .portrait img { display: block; width: 100%; height: auto; border-radius: 3px; }
   @media (prefers-reduced-motion: reduce) {
-    .bird { animation: none; }
     .btn { transition: none; }
   }
   @media (min-width: 860px) {
@@ -435,6 +449,7 @@
   }
 
   /* The journey as a 3D book (see the module script at the end) */
+  .book { max-width: 720px; margin-inline: auto; }
   .book[hidden] { display: none; }
   .book-stage { aspect-ratio: 16 / 10; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
   .book-stage:active { cursor: grabbing; }
@@ -459,6 +474,7 @@
     .strip { transform: rotate(-.3deg); }
     .hire { transform: rotate(.25deg); }
     .note { transform: rotate(-1deg); }
+    .portrait { max-width: 300px; transform: rotate(1deg); }
   }
 </style>
 <script>
@@ -500,53 +516,9 @@
       </div>
     </div>
 
-    <svg class="art" viewBox="0 0 420 370" role="img" data-i18n-aria="artLabel">
-      <defs>
-        <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-      </defs>
-      <ellipse cx="210" cy="334" rx="160" ry="10" fill="rgba(46,42,38,.08)"/>
-      <g filter="url(#rough)" stroke="#2E2A26" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <!-- cover -->
-        <path d="M48 312 C108 300 170 302 210 320 C250 302 312 300 372 312 L374 324 C314 312 252 314 210 332 C168 314 106 312 46 324 Z" fill="#B7C4A4"/>
-        <!-- pages -->
-        <path d="M210 312 C170 296 110 294 56 306 L64 236 C116 224 172 228 210 246 Z" fill="#FFFDF7"/>
-        <path d="M210 312 C250 296 310 294 364 306 L356 236 C304 224 248 228 210 246 Z" fill="#FFFDF7"/>
-        <path d="M210 246 L210 312"/>
-        <g stroke="#4A403A" stroke-width="1.4" opacity=".55" fill="none">
-          <path d="M84 254 C120 246 160 248 192 260"/>
-          <path d="M82 268 C118 260 158 262 192 274"/>
-          <path d="M80 282 C116 274 156 276 192 288"/>
-          <path d="M228 274 C262 262 302 260 338 268"/>
-          <path d="M228 288 C262 276 302 274 340 282"/>
-        </g>
-        <!-- the door on the spine -->
-        <path d="M205 302 V287 a5 5 0 0 1 10 0 V302 Z" fill="#8E4A51" stroke-width="1.4"/>
-        <circle cx="212.6" cy="295" r="1.1" fill="#F6EFE6" stroke="none"/>
-        <!-- a page lifting off -->
-        <path d="M210 246 C228 214 262 192 304 184 C300 204 296 218 292 230 C262 230 232 236 210 246 Z" fill="#FFFDF7"/>
-        <path d="M222 238 C240 226 262 220 286 218" stroke="#4A403A" stroke-width="1.2" opacity=".5"/>
-        <!-- a page halfway to a bird -->
-        <path d="M284 150 C296 136 314 130 332 132 C328 144 320 156 312 162 C302 156 293 152 284 150 Z" fill="#FFFDF7"/>
-        <path d="M284 150 C298 147 308 152 312 162" stroke-width="1.6"/>
-        <!-- its path up to the birds -->
-        <path d="M304 184 C336 168 340 150 326 140 M300 128 C276 112 290 84 270 60" fill="none" stroke="#4A403A" stroke-width="1.8" stroke-dasharray="3 7"/>
-      </g>
-      <g fill="none" stroke="#2E2A26" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <g transform="translate(232 98)"><path class="bird" style="--t:6.5s" d="M0 0 q7 -9 14 0 q7 -9 14 0"/></g>
-        <g transform="translate(286 62) scale(.9)"><path class="bird" style="--t:7.5s;--d:-2s" stroke="#8E4A51" vector-effect="non-scaling-stroke" d="M0 0 q7 -9 14 0 q7 -9 14 0"/></g>
-        <g transform="translate(334 92) scale(.7)"><path class="bird" style="--t:5.5s;--d:-1s" vector-effect="non-scaling-stroke" d="M0 0 q7 -9 14 0 q7 -9 14 0"/></g>
-        <g transform="translate(250 30) scale(.65)"><path class="bird" style="--t:8s;--d:-4s" vector-effect="non-scaling-stroke" d="M0 0 q7 -9 14 0 q7 -9 14 0"/></g>
-        <g transform="translate(196 150) scale(.75)"><path class="bird" style="--t:6s;--d:-3s" vector-effect="non-scaling-stroke" d="M0 0 q7 -9 14 0 q7 -9 14 0"/></g>
-      </g>
-      <text class="art-label" x="100" y="96" text-anchor="middle" fill="#8E4A51" transform="rotate(-6 100 96)" data-i18n="artCaption"></text>
-      <g fill="none" stroke="#8E4A51" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M128 112 C150 124 182 122 214 106"/>
-        <path d="M203 103 L215 106 L208 116"/>
-      </g>
-    </svg>
+    <figure class="portrait">
+      <img src="/assets/portfolio/reem.webp" width="760" height="1125" fetchpriority="high" data-i18n-alt="portraitAlt" alt="">
+    </figure>
   </section>
 
   <ul class="strip">
@@ -692,8 +664,7 @@
       heroBody: 'I\'m the maker of Waraq, a bilingual reading platform, and of small apps for readers. Behind them are 10+ years as a software engineer and architect, which I also bring to bookstores and publishers who need systems that just work.',
       heroWork: 'See my work',
       heroHire: 'Work with me',
-      artLabel: 'Drawing of an open book whose pages lift off and turn into birds flying upward, with a tiny door on its spine.',
-      artCaption: 'stories fly',
+      portraitAlt: 'Reem Issa smiling in a bookshop, surrounded by shelves of Arabic books',
       exp1: '10+ years',
       exp1Body: 'Java and enterprise systems',
       exp2: 'Software architect',
@@ -757,8 +728,7 @@
       heroBody: 'أنا صانعة «ورق»، منصّة قراءة ثنائية اللغة، وتطبيقات صغيرة للقرّاء. وخلفها أكثر من عشر سنوات من العمل مهندسةَ برمجيات ومعماريةَ أنظمة، أضعها أيضاً في خدمة المكتبات ودور النشر التي تحتاج أنظمة تعمل بلا عناء.',
       heroWork: 'تصفّح أعمالي',
       heroHire: 'لنعمل معاً',
-      artLabel: 'رسم لكتاب مفتوح تنفصل صفحاته وتتحوّل إلى طيور تحلّق عالياً، وعلى كعبه باب صغير.',
-      artCaption: 'الحكايات تطير',
+      portraitAlt: 'ريم عيسى مبتسمة في مكتبة، تحيط بها رفوف الكتب العربية',
       exp1: '+10 سنوات',
       exp1Body: 'Java والأنظمة المؤسسية',
       exp2: 'معمارية برمجيات',
@@ -875,10 +845,19 @@
     const INK = '#2E2A26', SOFT = '#4A403A', ROSE = '#8E4A51';
     const TAPE = { study: 'rgba(169,195,214,.8)', work: 'rgba(232,195,195,.85)', bird: 'rgba(183,196,164,.9)' };
 
+    // Three looks to choose from while the design settles:
+    // ?book=drawn (the default), ?book=notebook or ?book=minimal.
+    const LOOKS = {
+      drawn: { paper: '#FFFDF7', lines: false, tape: true, sketch: true, gutter: 0.07, light: [3.2, 0.3], board: { color: 0xF3EADC, pad: 0.012, radius: 0 } },
+      notebook: { paper: '#FBF5EA', lines: true, tape: false, sketch: false, gutter: 0.22, light: [2.3, 1.2], board: { color: 0xA8636B, pad: 0.05, radius: 0.06 }, cloth: '#A8636B', edges: true, ribbon: true, shadow: true },
+      minimal: { paper: '#FFFFFF', lines: false, tape: false, sketch: false, gutter: 0.1, light: [2.6, 0.8], board: null, shadow: true },
+    };
+    const look = LOOKS[new URLSearchParams(location.search).get('book')] || LOOKS.drawn;
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cbb8, 2.4));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cbb8, look.light[0]));
+    const sun = new THREE.DirectionalLight(0xffffff, look.light[1]);
     sun.position.set(-1.5, 2, 4);
     scene.add(sun);
 
@@ -888,11 +867,50 @@
     holder.add(pages);
     scene.add(holder);
 
-    const board = new THREE.MeshLambertMaterial({ color: 0xB7C4A4 });
-    for (const side of [-1, 1]) {
-      const cover = new THREE.Mesh(new THREE.PlaneGeometry(W + 0.05, H + 0.07), board);
-      cover.position.set(side * (W + 0.05) / 2, 0, -0.01);
-      pages.add(cover);
+    // What the pages rest on, depending on the look: a shadow, the cover
+    // boards, the block of pages and a ribbon.
+    if (look.shadow) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const g = c.getContext('2d'), glow = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+      glow.addColorStop(0, 'rgba(46,42,38,.35)');
+      glow.addColorStop(1, 'rgba(46,42,38,0)');
+      g.fillStyle = glow;
+      g.fillRect(0, 0, 256, 256);
+      const shadow = new THREE.Mesh(new THREE.PlaneGeometry(W * 2.7, H * 1.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+      shadow.position.set(0, -0.05, -0.08);
+      pages.add(shadow);
+    }
+    if (look.board) {
+      const { color, pad, radius: r } = look.board;
+      const w = W + pad, h = H + pad * 1.4, shape = new THREE.Shape();
+      shape.moveTo(0, -h / 2);
+      shape.lineTo(w - r, -h / 2);
+      shape.quadraticCurveTo(w, -h / 2, w, -h / 2 + r);
+      shape.lineTo(w, h / 2 - r);
+      shape.quadraticCurveTo(w, h / 2, w - r, h / 2);
+      shape.lineTo(0, h / 2);
+      shape.lineTo(0, -h / 2);
+      const material = new THREE.MeshLambertMaterial({ color });
+      for (const side of [-1, 1]) {
+        const cover = new THREE.Mesh(new THREE.ShapeGeometry(shape, 6), material);
+        cover.scale.x = side;
+        cover.position.z = -0.03;
+        pages.add(cover);
+      }
+    }
+    if (look.edges) {
+      const material = new THREE.MeshLambertMaterial({ color: 0xEFE5D3 });
+      for (const side of [-1, 1]) {
+        const block = new THREE.Mesh(new THREE.BoxGeometry(W + 0.008, H, 0.025), material);
+        block.position.set(side * (W + 0.008) / 2, 0, -0.014);
+        pages.add(block);
+      }
+    }
+    if (look.ribbon) {
+      const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.035, 0.26), new THREE.MeshLambertMaterial({ color: 0x8E4A51 }));
+      ribbon.position.set(0.09, -H / 2 - 0.06, -0.004);
+      pages.add(ribbon);
     }
 
     let lang = 'en', stops = [], leaves = [], current = 0, narrow = false;
@@ -982,24 +1000,51 @@
 
     function shade(ctx, spine) {
       const g = spine === 'left' ? ctx.createLinearGradient(0, 0, 110, 0) : ctx.createLinearGradient(TW, 0, TW - 110, 0);
-      g.addColorStop(0, 'rgba(46,42,38,.2)');
+      g.addColorStop(0, `rgba(46,42,38,${look.gutter})`);
       g.addColorStop(1, 'rgba(46,42,38,0)');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, TW, TH);
     }
 
-    function paper(ctx, spine) {
-      ctx.fillStyle = '#FFFDF7';
-      ctx.fillRect(0, 0, TW, TH);
-      ctx.strokeStyle = 'rgba(169,195,214,.45)';
-      ctx.lineWidth = 2;
-      for (let y = 128; y < TH - 60; y += 48) {
+    // A wobbly ink line round the three free edges of a page.
+    function sketch(ctx, spine) {
+      const inset = 24, outer = spine === 'left' ? TW - inset : inset, inner = spine === 'left' ? 0 : TW;
+      const corners = [[inner, inset], [outer, inset], [outer, TH - inset], [inner, TH - inset]];
+      ctx.save();
+      ctx.strokeStyle = INK;
+      ctx.lineCap = ctx.lineJoin = 'round';
+      for (const [pass, width, alpha] of [[0, 3.2, 1], [1, 1.6, 0.4]]) {
+        ctx.lineWidth = width;
+        ctx.globalAlpha = alpha;
         ctx.beginPath();
-        ctx.moveTo(40, y);
-        ctx.lineTo(TW - 40, y);
+        ctx.moveTo(...corners[0]);
+        for (let c = 1; c < corners.length; c++) {
+          const [x0, y0] = corners[c - 1], [x1, y1] = corners[c];
+          for (let t = 1; t <= 12; t++) {
+            const f = t / 12, wobble = Math.sin((c * 31 + t * 7 + pass * 13) * 1.7) * 2.2;
+            ctx.lineTo(x0 + (x1 - x0) * f + (x0 === x1 ? wobble : 0), y0 + (y1 - y0) * f + (y0 === y1 ? wobble : 0));
+          }
+        }
         ctx.stroke();
       }
+      ctx.restore();
+    }
+
+    function paper(ctx, spine) {
+      ctx.fillStyle = look.paper;
+      ctx.fillRect(0, 0, TW, TH);
+      if (look.lines) {
+        ctx.strokeStyle = 'rgba(169,195,214,.45)';
+        ctx.lineWidth = 2;
+        for (let y = 128; y < TH - 60; y += 48) {
+          ctx.beginPath();
+          ctx.moveTo(40, y);
+          ctx.lineTo(TW - 40, y);
+          ctx.stroke();
+        }
+      }
       shade(ctx, spine);
+      if (look.sketch) sketch(ctx, spine);
     }
 
     function tape(ctx, color, x, y, angle) {
@@ -1029,21 +1074,30 @@
 
     function coverPage(spine) {
       return (ctx) => {
-        ctx.fillStyle = '#B7C4A4';
-        ctx.fillRect(0, 0, TW, TH);
-        shade(ctx, spine);
-        doodle(ctx, 'bird', TW / 2 - 130, 250, 96, INK);
-        doodle(ctx, 'bird', TW / 2 + 40, 200, 76, ROSE);
-        doodle(ctx, 'bird', TW / 2 + 150, 280, 60, INK);
+        if (look.cloth) {
+          // Cloth: the cover colour with a faint weave.
+          ctx.fillStyle = look.cloth;
+          ctx.fillRect(0, 0, TW, TH);
+          ctx.fillStyle = 'rgba(255,255,255,.05)';
+          for (let i = 0; i < TW; i += 6) ctx.fillRect(i, 0, 2, TH);
+          for (let i = 0; i < TH; i += 6) ctx.fillRect(0, i, TW, 2);
+          shade(ctx, spine);
+        } else paper(ctx, spine);
+        const birds = look.cloth ? '#FBF5EA' : INK;
+        doodle(ctx, 'bird', TW / 2 - 130, 250, 96, birds);
+        doodle(ctx, 'bird', TW / 2 + 40, 200, 76, look.cloth ? '#F1E3E0' : ROSE);
+        doodle(ctx, 'bird', TW / 2 + 150, 280, 60, birds);
         ctx.save();
         ctx.translate(TW / 2, 540);
-        ctx.rotate(-0.025);
-        ctx.fillStyle = '#FFFDF7';
-        ctx.fillRect(-260, -150, 520, 300);
-        ctx.strokeStyle = INK;
-        ctx.lineWidth = 5;
-        ctx.strokeRect(-260, -150, 520, 300);
-        tape(ctx, TAPE.work, 0, -150, 0.04);
+        ctx.rotate(look.board ? -0.025 : 0);
+        if (look.board) {
+          ctx.fillStyle = '#FFFDF7';
+          ctx.fillRect(-260, -150, 520, 300);
+          ctx.strokeStyle = INK;
+          ctx.lineWidth = 5;
+          ctx.strokeRect(-260, -150, 520, 300);
+        }
+        if (look.tape) tape(ctx, TAPE.work, 0, -150, 0.04);
         ctx.direction = ar() ? 'rtl' : 'ltr';
         ctx.textAlign = 'center';
         ctx.fillStyle = INK;
@@ -1059,7 +1113,7 @@
     function picturePage(stop, kind, spine) {
       return (ctx) => {
         paper(ctx, spine);
-        tape(ctx, TAPE[kind], TW / 2, 70, -0.05);
+        if (look.tape) tape(ctx, TAPE[kind], TW / 2, 70, -0.05);
         ctx.direction = ar() ? 'rtl' : 'ltr';
         ctx.textAlign = 'center';
         ctx.fillStyle = INK;
