@@ -171,45 +171,71 @@
   }
   html:lang(ar) body { font-size: 1.2rem; line-height: 1.9; }
 
-  /* The ruled page the whole site sits on, with plain desk on either side:
-     a sheet torn from a notebook, its punched holes along the top. */
-  .sheet, .sheet::before, .sheet::after {
-    --holes: radial-gradient(circle at 18px 22px, var(--desk) 0 6px, rgba(46,42,38,.22) 6.5px 7.5px, transparent 8px);
-    --lines: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(169,195,214,.22) 31px 32px);
-    background-image: var(--holes), var(--lines);
-    background-size: 36px 44px, auto;
-    background-repeat: repeat-x, repeat;
-    background-position: center top, 0 0;
-    border-radius: 4px;
-  }
-  .sheet {
+  /* The site is a page torn from a notebook, lying on two more on the desk:
+     aged paper, ruled lines, a red margin, holes along the top and torn
+     edges. The shadow sits on the pile so the torn edges cast it too. */
+  .pile {
+    --margin-x: 46px;
+    --margin: linear-gradient(to right, transparent 0 var(--margin-x), rgba(206,92,98,.5) var(--margin-x) calc(var(--margin-x) + 2px), transparent 0);
     position: relative;
     max-width: 1180px;
-    margin: 32px auto;
-    padding-block-start: 28px;
-    background-color: var(--paper);
-    box-shadow: 0 1px 2px rgba(46,42,38,.08), 0 18px 40px -20px rgba(46,42,38,.35);
+    margin: 32px auto 48px;
+    filter: drop-shadow(0 1px 1px rgba(46,42,38,.16)) drop-shadow(0 10px 14px rgba(46,42,38,.12));
   }
-  /* Two more torn pages under it, a little askew, like a loose pile. */
-  .sheet::before, .sheet::after {
+  html[dir="rtl"] .pile {
+    --margin: linear-gradient(to left, transparent 0 var(--margin-x), rgba(206,92,98,.5) var(--margin-x) calc(var(--margin-x) + 2px), transparent 0);
+  }
+  .sheet, .pile::before, .pile::after {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 32px 26px, var(--desk) 0 9px, rgba(46,42,38,.1) 9.5px, transparent 10.5px),
+      var(--margin),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .45 0 0 0 0 .3 .28 0 0 0 -.1'/%3E%3C/filter%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .33 0 0 0 0 .22 .3 0 0 0 -.1'/%3E%3C/filter%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.3' numOctaves='1' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .14 12 0 0 0 -8.9'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23m)'/%3E%3Crect width='320' height='320' filter='url(%23g)'/%3E%3Crect width='320' height='320' filter='url(%23s)'/%3E%3C/svg%3E"),
+      repeating-linear-gradient(to bottom, transparent 0 31px, rgba(150,150,185,.3) 31px 32px);
+    background-size: 64px 52px, auto, 320px 320px, auto;
+    background-repeat: repeat-x, no-repeat, repeat, repeat;
+    background-position: center top, 0 0, 0 0, 0 0;
+    -webkit-mask-image: linear-gradient(#000 0 0), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='260'%3E%3Cpath d='M12 0 L5 0 L2.8 5 L5.6 9 L6.0 15 L4.1 23 L5.3 26 L1.9 29 L1.9 38 L2.9 45 L6.3 48 L4.5 53 L3.7 60 L5.6 63 L4.7 70 L3.6 74 L7.1 77 L6.4 80 L3.2 86 L5.5 92 L5.2 95 L7.6 99 L6.6 102 L3.5 109 L8.4 115 L2.3 118 L4.4 127 L6.8 134 L2.6 137 L4.9 141 L1.8 149 L6.2 157 L6.9 164 L5.5 167 L7.6 174 L3.7 181 L6.4 187 L5.7 190 L5.6 194 L4.7 197 L7.4 204 L8.1 213 L4.8 217 L6.1 222 L1.9 228 L6.4 232 L6.0 239 L8.5 242 L7.3 249 L3.5 254 L5 260 L12 260Z'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='260'%3E%3Cpath d='M0 0 L7 0 L9.2 5 L6.4 9 L6.0 15 L7.9 23 L6.7 26 L10.1 29 L10.1 38 L9.1 45 L5.7 48 L7.5 53 L8.3 60 L6.4 63 L7.3 70 L8.4 74 L4.9 77 L5.6 80 L8.8 86 L6.5 92 L6.8 95 L4.4 99 L5.4 102 L8.5 109 L3.6 115 L9.7 118 L7.6 127 L5.2 134 L9.4 137 L7.1 141 L10.2 149 L5.8 157 L5.1 164 L6.5 167 L4.4 174 L8.3 181 L5.6 187 L6.3 190 L6.4 194 L7.3 197 L4.6 204 L3.9 213 L7.2 217 L5.9 222 L10.1 228 L5.6 232 L6.0 239 L3.5 242 L4.7 249 L8.5 254 L7 260 L0 260Z'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='12'%3E%3Cpath d='M0 0 L0 7 L6 10.1 L15 9.2 L22 8.8 L31 10.3 L40 7.3 L46 7.4 L52 4.6 L59 6.9 L68 6.0 L75 7.0 L79 5.9 L83 7.3 L92 8.6 L99 3.5 L105 3.5 L113 4.6 L120 5.5 L129 8.3 L133 8.9 L136 8.5 L142 10.0 L147 5.1 L151 7.7 L154 4.6 L161 7.8 L170 3.8 L178 4.6 L186 10.5 L189 9.0 L196 4.1 L202 7.2 L208 3.6 L216 7.7 L224 10.0 L231 6.1 L239 5.1 L243 8.6 L250 9.9 L253 8.2 L260 7 L260 0Z'/%3E%3C/svg%3E");
+    mask-image: linear-gradient(#000 0 0), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='260'%3E%3Cpath d='M12 0 L5 0 L2.8 5 L5.6 9 L6.0 15 L4.1 23 L5.3 26 L1.9 29 L1.9 38 L2.9 45 L6.3 48 L4.5 53 L3.7 60 L5.6 63 L4.7 70 L3.6 74 L7.1 77 L6.4 80 L3.2 86 L5.5 92 L5.2 95 L7.6 99 L6.6 102 L3.5 109 L8.4 115 L2.3 118 L4.4 127 L6.8 134 L2.6 137 L4.9 141 L1.8 149 L6.2 157 L6.9 164 L5.5 167 L7.6 174 L3.7 181 L6.4 187 L5.7 190 L5.6 194 L4.7 197 L7.4 204 L8.1 213 L4.8 217 L6.1 222 L1.9 228 L6.4 232 L6.0 239 L8.5 242 L7.3 249 L3.5 254 L5 260 L12 260Z'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='260'%3E%3Cpath d='M0 0 L7 0 L9.2 5 L6.4 9 L6.0 15 L7.9 23 L6.7 26 L10.1 29 L10.1 38 L9.1 45 L5.7 48 L7.5 53 L8.3 60 L6.4 63 L7.3 70 L8.4 74 L4.9 77 L5.6 80 L8.8 86 L6.5 92 L6.8 95 L4.4 99 L5.4 102 L8.5 109 L3.6 115 L9.7 118 L7.6 127 L5.2 134 L9.4 137 L7.1 141 L10.2 149 L5.8 157 L5.1 164 L6.5 167 L4.4 174 L8.3 181 L5.6 187 L6.3 190 L6.4 194 L7.3 197 L4.6 204 L3.9 213 L7.2 217 L5.9 222 L10.1 228 L5.6 232 L6.0 239 L3.5 242 L4.7 249 L8.5 254 L7 260 L0 260Z'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='12'%3E%3Cpath d='M0 0 L0 7 L6 10.1 L15 9.2 L22 8.8 L31 10.3 L40 7.3 L46 7.4 L52 4.6 L59 6.9 L68 6.0 L75 7.0 L79 5.9 L83 7.3 L92 8.6 L99 3.5 L105 3.5 L113 4.6 L120 5.5 L129 8.3 L133 8.9 L136 8.5 L142 10.0 L147 5.1 L151 7.7 L154 4.6 L161 7.8 L170 3.8 L178 4.6 L186 10.5 L189 9.0 L196 4.1 L202 7.2 L208 3.6 L216 7.7 L224 10.0 L231 6.1 L239 5.1 L243 8.6 L250 9.9 L253 8.2 L260 7 L260 0Z'/%3E%3C/svg%3E");
+    -webkit-mask-size: calc(100% - 20px) calc(100% - 10px), 12px 260px, 12px 260px, 260px 12px;
+    mask-size: calc(100% - 20px) calc(100% - 10px), 12px 260px, 12px 260px, 260px 12px;
+    -webkit-mask-position: center top, left top, right top, left bottom;
+    mask-position: center top, left top, right top, left bottom;
+    -webkit-mask-repeat: no-repeat, repeat-y, repeat-y, repeat-x;
+    mask-repeat: no-repeat, repeat-y, repeat-y, repeat-x;
+  }
+  .sheet { padding: 28px 56px 0; }
+  /* Two more pages under it, a little askew, torn in other places. */
+  .pile::before, .pile::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
-    border: 1px solid rgba(46,42,38,.1);
-    box-shadow: 0 1px 3px rgba(46,42,38,.12), 0 14px 30px -18px rgba(46,42,38,.3);
   }
-  .sheet::before { background-color: #ECE1D2; transform: translate(14px, 14px) rotate(.6deg); }
-  .sheet::after { background-color: #F1E8DC; transform: translate(-10px, 8px) rotate(-.4deg); }
+  .pile::before {
+    background-color: #EDE3D3;
+    transform: translate(14px, 14px) rotate(.6deg);
+    -webkit-mask-position: center top, left 0 top 90px, right 0 top 170px, left 120px bottom 0;
+    mask-position: center top, left 0 top 90px, right 0 top 170px, left 120px bottom 0;
+  }
+  .pile::after {
+    background-color: #F2E9DC;
+    transform: translate(-10px, 8px) rotate(-.4deg);
+    -webkit-mask-position: center top, left 0 top 200px, right 0 top 60px, left 70px bottom 0;
+    mask-position: center top, left 0 top 200px, right 0 top 60px, left 70px bottom 0;
+  }
   @media (max-width: 1259px) {
-    .sheet { margin: 32px 40px; }
+    .pile { --margin-x: 28px; margin: 32px 40px 48px; }
+    .sheet { padding-inline: 38px; }
     /* The page is longer here, so the same tilt would poke past the edge. */
-    .sheet::before { transform: translate(10px, 12px) rotate(.35deg); }
-    .sheet::after { transform: translate(-8px, 8px) rotate(-.25deg); }
+    .pile::before { transform: translate(10px, 12px) rotate(.35deg); }
+    .pile::after { transform: translate(-8px, 8px) rotate(-.25deg); }
   }
+  /* Phones: one page, edge to edge, with straight sides. */
   @media (max-width: 759px) {
-    .sheet { margin: 0; border-radius: 0; box-shadow: none; }
-    .sheet::before, .sheet::after { display: none; }
+    .pile { --margin-x: 12px; margin: 0; filter: none; }
+    .pile::before, .pile::after { display: none; }
+    .sheet { padding: 28px 0 0; padding-inline-start: 12px; -webkit-mask-image: none; mask-image: none; }
   }
   .wrap { max-width: 1080px; margin-inline: auto; padding-inline: 20px; }
   section { scroll-margin-block-start: 16px; }
@@ -538,6 +564,7 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+<div class="pile">
 <div class="sheet">
 
 <header class="nav">
@@ -687,6 +714,7 @@
     <span data-i18n="copyright"></span>
   </div>
 </footer>
+</div>
 </div>
 
 <script>
