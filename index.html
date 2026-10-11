@@ -173,19 +173,32 @@
 
   /* The ruled page the whole site sits on, with plain desk on either side. */
   .sheet {
+    position: relative;
     max-width: 1180px;
     margin: 32px auto;
-    overflow: clip;
     background-color: var(--paper);
     background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(169,195,214,.22) 31px 32px);
     border-radius: 4px;
     box-shadow: 0 1px 2px rgba(46,42,38,.08), 0 18px 40px -20px rgba(46,42,38,.35);
   }
+  /* Two more pages under it, a little askew, like a stack of loose sheets. */
+  .sheet::before, .sheet::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 1px solid rgba(46,42,38,.1);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(46,42,38,.12), 0 14px 30px -18px rgba(46,42,38,.3);
+  }
+  .sheet::before { background: #ECE1D2; transform: translate(14px, 14px) rotate(.6deg); }
+  .sheet::after { background: #F1E8DC; transform: translate(-10px, 8px) rotate(-.4deg); }
   @media (max-width: 1259px) {
     .sheet { margin: 32px 40px; }
   }
   @media (max-width: 759px) {
     .sheet { margin: 0; border-radius: 0; box-shadow: none; }
+    .sheet::before, .sheet::after { display: none; }
   }
   .wrap { max-width: 1080px; margin-inline: auto; padding-inline: 20px; }
   section { scroll-margin-block-start: 16px; }
