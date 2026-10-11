@@ -462,7 +462,6 @@
   .chip { font-family: var(--hand); font-size: 1.15rem; color: var(--ink); background: var(--card); border: 2px solid var(--ink); border-radius: var(--wobble); padding: 0 12px; cursor: pointer; }
   html:lang(ar) .chip { font-family: var(--body); font-weight: 700; font-size: .9rem; padding: 2px 12px; }
   .chip[aria-pressed="true"] { background: var(--rose); }
-  .book-hint { margin-block-start: 10px; text-align: center; font-size: .9rem; color: var(--ink-soft); }
   /* While the book runs, the cards stay in the page for screen readers only. */
   .has-book .journey { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   @media (max-width: 639px) {
@@ -544,7 +543,6 @@
         <div class="book-years" role="group" data-i18n-aria="journeyYears"></div>
         <button type="button" class="btn btn-outline book-next" data-i18n="journeyOlder"></button>
       </div>
-      <p class="book-hint" data-i18n="journeyHint"></p>
     </div>
     <ol class="journey"></ol>
   </section>
@@ -645,7 +643,6 @@
       journeyNewer: '← newer',
       journeyOlder: 'older →',
       journeyYears: 'Jump to a year',
-      journeyHint: 'Drag, tap or use the arrows to turn the pages.',
       journey: [
         { when: 'now', title: 'The techy reader', line: 'Waraq and small apps for readers.' },
         { when: '2023–2025', title: 'MSc Computer Science, Distinction', place: 'University of Sunderland', line: 'Earned while working at UNICEF.' },
@@ -709,7 +706,6 @@
       journeyNewer: '→ الأحدث',
       journeyOlder: 'الأقدم ←',
       journeyYears: 'انتقل إلى سنة',
-      journeyHint: 'اسحب الصفحات أو انقر عليها أو استخدم الأسهم لتقليبها.',
       journey: [
         { when: 'الآن', title: 'القارئة التقنية', line: '«ورق» وتطبيقات صغيرة للقرّاء.' },
         { when: '٢٠٢٣–٢٠٢٥', title: 'ماجستير علوم الحاسوب بامتياز', place: 'جامعة سندرلاند', line: 'أنجزته إلى جانب عملي في يونيسف.' },
