@@ -201,11 +201,11 @@
     padding-block: 22px 8px;
   }
   .brand { display: flex; flex-direction: column; align-items: flex-start; color: var(--ink); text-decoration: none; line-height: 1.25; }
-  /* The name in the other script leads, large; the page's own script sits under it. */
-  .brand-big { font-family: 'Aref Ruqaa', serif; font-weight: 700; font-size: 2.1rem; line-height: 1.35; }
-  html:lang(ar) .brand-big { font-family: 'Caveat', cursive; font-size: 2.3rem; line-height: 1.1; }
-  .brand-small { font-weight: 700; font-size: .95rem; color: var(--ink-soft); letter-spacing: .04em; }
-  html:lang(ar) .brand-small { letter-spacing: 0; font-size: 1.05rem; }
+  /* The name in the page's own script leads, large; the other script sits under it. */
+  .brand-big { font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.3rem; line-height: 1.1; }
+  html:lang(ar) .brand-big { font-family: 'Aref Ruqaa', serif; font-size: 2.1rem; line-height: 1.35; }
+  .brand-small { font-weight: 700; font-size: 1.05rem; color: var(--ink-soft); }
+  html:lang(ar) .brand-small { font-size: .95rem; letter-spacing: .04em; }
   .brand-sub { font-family: var(--hand); color: var(--rose-deep); font-size: 1.4rem; transform: rotate(-2deg); margin-inline-start: 10px; }
   html:lang(ar) .brand-sub { font-size: 1.15rem; }
   .nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; }
@@ -542,8 +542,8 @@
 <script>
   const COPY = {
     en: {
-      brandBig: 'ريم عيسى',
-      brandSmall: 'Reem Issa',
+      brandBig: 'Reem Issa',
+      brandSmall: 'ريم عيسى',
       brandSub: 'the techy reader',
       navWork: 'Work',
       navApps: 'Reader apps',
@@ -589,8 +589,8 @@
       privacy: 'No accounts and no cookies. Visits are counted without knowing who you are.',
     },
     ar: {
-      brandBig: 'Reem Issa',
-      brandSmall: 'ريم عيسى',
+      brandBig: 'ريم عيسى',
+      brandSmall: 'Reem Issa',
       brandSub: 'القارئة التقنية',
       navWork: 'أعمالي',
       navApps: 'تطبيقات القرّاء',
