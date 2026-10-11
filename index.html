@@ -854,7 +854,9 @@
     scene.add(holder);
 
     // A cloth-bound notebook: a soft shadow, rounded cover boards, the block
-    // of pages and a ribbon.
+    // of pages and a ribbon. `inside` is what only an open book shows.
+    const inside = [];
+    let shadow;
     {
       const c = document.createElement('canvas');
       c.width = c.height = 256;
@@ -863,7 +865,7 @@
       glow.addColorStop(1, 'rgba(46,42,38,0)');
       g.fillStyle = glow;
       g.fillRect(0, 0, 256, 256);
-      const shadow = new THREE.Mesh(new THREE.PlaneGeometry(W * 2.7, H * 1.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+      shadow = new THREE.Mesh(new THREE.PlaneGeometry(W * 2.7, H * 1.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
       shadow.position.set(0, -0.05, -0.08);
       pages.add(shadow);
     }
@@ -882,6 +884,7 @@
         cover.scale.x = side;
         cover.position.z = -0.03;
         pages.add(cover);
+        if (side < 0) inside.push(cover);
       }
     }
     {
@@ -890,6 +893,7 @@
         const block = new THREE.Mesh(new THREE.BoxGeometry(W + 0.008, H, 0.025), material);
         block.position.set(side * (W + 0.008) / 2, 0, -0.014);
         pages.add(block);
+        if (side < 0) inside.push(block);
       }
     }
     {
@@ -1122,6 +1126,17 @@
       });
     }
 
+    // Closed, the book sits centred on its cover; opening it slides it
+    // across so the spread is centred.
+    function place() {
+      const open = leaves.length ? Math.max(0, leaves[0].shown) : 0, closed = 1 - open;
+      const half = ar() ? W / 2 : -W / 2;
+      pages.position.x = narrow ? half : half * closed;
+      shadow.position.x = (W / 2) * closed;
+      shadow.scale.x = 1 - 0.5 * closed;
+      for (const mesh of inside) mesh.visible = open > 0.5;
+    }
+
     function layout() {
       const w = stage.clientWidth, h = stage.clientHeight;
       if (!w || !h) return;
@@ -1134,7 +1149,7 @@
       camera.position.set(0, 0, Math.max(fitH / 2 / t, fitW / 2 / (t * camera.aspect)));
       camera.updateProjectionMatrix();
       pages.scale.x = ar() ? -1 : 1;
-      pages.position.x = narrow ? (ar() ? W / 2 : -W / 2) : 0;
+      place();
       kick();
     }
 
@@ -1177,7 +1192,7 @@
       if (Math.abs(dx) > 40) go(current + ((dx < 0) !== ar() ? 1 : -1));
       else if (Math.abs(dx) < 8) {
         const r = stage.getBoundingClientRect();
-        go(current + (narrow || (e.clientX > r.left + r.width / 2) !== ar() ? 1 : -1));
+        go(current + (current === 0 || narrow || (e.clientX > r.left + r.width / 2) !== ar() ? 1 : -1));
       }
     });
 
@@ -1204,6 +1219,7 @@
         }
         bend(leaf, k);
       });
+      place();
       renderer.render(scene, camera);
       if (moving) requestAnimationFrame(tick);
       else running = false;
@@ -1228,12 +1244,6 @@
       book.hidden = false;
       layout();
       new ResizeObserver(layout).observe(stage);
-      // Open at the newest stop the first time the book is in view.
-      new IntersectionObserver((entries, io) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        io.disconnect();
-        setTimeout(() => { if (current === 0) go(1); }, reduce ? 0 : 500);
-      }, { threshold: 0.4 }).observe(stage);
     });
   }
 </script>
