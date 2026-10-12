@@ -437,7 +437,7 @@
     background: repeating-linear-gradient(45deg, rgba(46,42,38,.2) 0 1.5px, transparent 1.5px 10px), var(--card);
   }
   .frame.missing img { display: none; }
-  .frame.missing .hatch, .frame.placeholder .hatch { display: grid; }
+  .frame.missing .hatch { display: grid; }
   .hatch-label {
     font-family: var(--hand);
     font-size: 1.7rem;
@@ -497,13 +497,12 @@
     inset-block-start: 14px;
     width: 46px;
     height: 46px;
-    padding: 8px;
-    color: var(--ink);
+    padding: 6px;
+    object-fit: contain;
     background: var(--paper);
     border: 2px solid var(--ink);
     border-radius: 50% 45% 55% 48% / 48% 55% 45% 52%;
   }
-  .doodle.bird { color: var(--rose-deep); }
   .stop-card {
     padding: 16px 20px 18px;
     background: var(--card);
@@ -615,11 +614,6 @@
       <h2 data-i18n="journeyTitle"></h2>
       <span class="note" data-i18n="journeyNote"></span>
     </div>
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-      <symbol id="i-study" viewBox="0 0 32 32"><path d="M16 9c-3-2.5-7-3-11-2v16c4-1 8-.5 11 2 3-2.5 7-3 11-2V7c-4-1-8-.5-11 2zM16 9v16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-work" viewBox="0 0 32 32"><path d="M7.5 8.5h17v12h-17zM3 24.5h26l-2 2.5H5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-bird" viewBox="0 0 32 32"><path d="M4 19q6-8 12 0q6-8 12 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    </svg>
     <div class="book" hidden>
       <div class="book-stage"><canvas aria-hidden="true"></canvas></div>
       <div class="book-controls">
@@ -660,9 +654,10 @@
         <span class="note" data-i18n="appsNote"></span>
       </li>
       <li class="card">
-        <div class="frame placeholder">
-          <div class="hatch"><span class="hatch-label" data-i18n="tradeLabel"></span></div>
-        </div>
+        <figure class="frame">
+          <img src="/assets/portfolio/trade.webp" data-i18n-alt="tradeAlt" alt="" loading="lazy" onerror="this.parentNode.classList.add('missing')">
+          <div class="hatch" aria-hidden="true"><span class="hatch-label" data-i18n="tradeLabel"></span></div>
+        </figure>
         <h3 data-i18n="tradeTitle"></h3>
         <p data-i18n="tradeBody"></p>
         <span class="note" data-i18n="tradeNote"></span>
@@ -770,6 +765,7 @@
       app3Body: 'Type a book title, get the one word that captures it.',
       appsNote: 'made for my bookstagram readers ✎',
       tradeLabel: 'private',
+      tradeAlt: 'A hand-drawn sketch of a sales chart, an inventory box, a receipt and a gear',
       tradeTitle: 'Systems for the book trade',
       tradeBody: 'Sales, inventory and accounting for a publishing house and bookshop, in Arabic and English. Built for the publisher\'s own team, so it stays private.',
       tradeNote: 'in the works · for internal use',
@@ -833,6 +829,7 @@
       app3Body: 'اكتب عنوان كتاب واحصل على كلمة واحدة تختصره.',
       appsNote: 'صُنعت لقرّاء حسابي ✎',
       tradeLabel: 'خاص',
+      tradeAlt: 'رسم يدوي لمخطط مبيعات وصندوق مخزون وإيصال وترس',
       tradeTitle: 'أنظمة لعالم الكتب',
       tradeBody: 'مبيعات ومخزون ومحاسبة لدار نشر ومكتبة، بالعربية والإنجليزية. يُبنى لفريق دار النشر نفسها، لذا يبقى خاصاً.',
       tradeNote: 'قيد العمل · للاستخدام الداخلي',
@@ -854,7 +851,7 @@
     document.querySelector('.journey').replaceChildren(...stops.map((stop, i) => {
       const li = document.createElement('li');
       li.className = 'stop';
-      li.innerHTML = `<svg class="doodle ${KINDS[i]}" aria-hidden="true"><use href="#i-${KINDS[i]}"/></svg>`
+      li.innerHTML = `<img class="doodle" src="/assets/portfolio/icon-${KINDS[i]}.webp" width="46" height="46" alt="">`
         + '<div class="stop-card"><span class="when"></span><h3></h3><span class="place"></span><p></p></div>';
       for (const [sel, key] of [['.when', 'when'], ['h3', 'title'], ['.place', 'place'], ['p', 'line']]) {
         const el = li.querySelector(sel);
@@ -1095,20 +1092,17 @@
       shade(ctx, spine);
     }
 
-    // The same doodles as the card list, drawn twice like a pencil sketch.
-    function doodle(ctx, kind, cx, cy, size, color) {
-      const path = new Path2D(document.querySelector(`#i-${kind} path`).getAttribute('d'));
-      ctx.save();
-      ctx.translate(cx - size / 2, cy - size / 2);
-      ctx.scale(size / 32, size / 32);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.2;
-      ctx.lineCap = ctx.lineJoin = 'round';
-      ctx.stroke(path);
-      ctx.globalAlpha = 0.35;
-      ctx.translate(0.5, 0.4);
-      ctx.stroke(path);
-      ctx.restore();
+    // The same hand-drawn doodles as the card list, from /assets/portfolio.
+    const art = {};
+    const artReady = Promise.all(['icon-bird', 'icon-study', 'icon-work', 'cover-birds'].map((name) => {
+      const img = (art[name] = new Image());
+      img.src = `/assets/portfolio/${name}.webp`;
+      return img.decode();
+    })).catch(() => {});
+
+    function doodle(ctx, kind, cx, cy, size) {
+      const img = art[`icon-${kind}`];
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
     }
 
     function coverPage(spine) {
@@ -1120,9 +1114,11 @@
         for (let i = 0; i < TW; i += 6) ctx.fillRect(i, 0, 2, TH);
         for (let i = 0; i < TH; i += 6) ctx.fillRect(0, i, TW, 2);
         shade(ctx, spine);
-        doodle(ctx, 'bird', TW / 2 - 130, 250, 96, PAPER);
-        doodle(ctx, 'bird', TW / 2 + 40, 200, 76, '#F1E3E0');
-        doodle(ctx, 'bird', TW / 2 + 150, 280, 60, PAPER);
+        const birds = art['cover-birds'];
+        if (birds.complete && birds.naturalWidth) {
+          const w = 500, h = (w * birds.naturalHeight) / birds.naturalWidth;
+          ctx.drawImage(birds, (TW - w) / 2, 105, w, h);
+        }
         ctx.save();
         ctx.translate(TW / 2, 540);
         ctx.rotate(-0.025);
@@ -1152,7 +1148,7 @@
         if (ar()) fit(ctx, 'body', 92, stop.when, TW - 180);
         else fit(ctx, 'hand', 136, stop.when, TW - 180);
         ctx.fillText(stop.when, TW / 2, 330);
-        doodle(ctx, kind, TW / 2, 620, 300, kind === 'bird' ? ROSE : INK);
+        doodle(ctx, kind, TW / 2, 620, 340);
       };
     }
 
@@ -1316,7 +1312,7 @@
       stops = COPY[lang].journey;
       const sample = COPY[lang].journeyTitle + ' ' + stops.map((s) => Object.values(s).join(' ')).join(' ');
       const faces = ar() ? ['700 40px "Aref Ruqaa"', '400 40px Amiri', '700 40px Amiri'] : ['700 40px Caveat', '400 40px Lora', '700 40px Lora'];
-      await Promise.all(faces.map((f) => document.fonts.load(f, sample))).catch(() => {});
+      await Promise.all([artReady, ...faces.map((f) => document.fonts.load(f, sample))]).catch(() => {});
       if (!leaves.length) leaves = Array.from({ length: stops.length + 1 }, makeLeaf);
       paint();
       chips();
