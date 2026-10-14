@@ -58,10 +58,12 @@ each tool works). Read it before changing anything.
   No privacy line in its footer, on purpose. No service worker.
 - The page sits on a torn, ruled notebook sheet (`.pile` / `.sheet`) with
   two pages stacked behind it, punched holes and a red margin line.
-- "My journey" is a three.js notebook that starts closed and turns pages,
-  newest first. three.js is a trimmed esbuild bundle in
-  `vendor/three/three-journey.min.js`; rebuild it if a new three.js class
-  is needed.
+- "My journey" is a drawn notebook: two Gemini drawings
+  (`journey-cover.webp`, `journey-spread.webp`, same 1312×816 canvas,
+  background made transparent) with the text laid on the pages in HTML.
+  It starts closed and pages through the stops, newest first; in Arabic
+  the drawings are mirrored. Page boxes are percentages of the drawing,
+  so a new drawing means re-measuring them. No three.js any more.
 - Work on the `portfolio` branch and merge to `main` only when asked.
 
 ## Working style
@@ -84,6 +86,13 @@ Don't add features, hardening or "nice to have" extras unless asked.
 Newest first. Add a line here when a piece of work is finished, so the
 next session knows where things stand.
 
+- 2026-10-14: "My journey" swapped from the three.js book to the drawn
+  Gemini notebook (portfolio branch, not merged yet). `vendor/three`
+  deleted; `cover-birds.webp` is now unused.
+- 2026-10-14: design system for the portfolio only, "Techy Reader
+  Notebook": https://claude.ai/artifact/L9GrNmEC5TR47Lb7zJgwHA (tokens,
+  fonts, doodles, 10 components). Update it when the portfolio's look
+  changes.
 - 2026-10-14: Bookstagram card added to "Things I've made", with a
   Gemini doodle (`assets/portfolio/bookstagram.webp`). Numbers on it
   (3,200 followers, 1,000+ posts) are from the profile on this date.
