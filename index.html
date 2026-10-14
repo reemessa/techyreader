@@ -542,10 +542,16 @@
   .book-stage:not(.is-open) .page { opacity: 0; visibility: hidden; }
   .label, .page { position: absolute; display: flex; flex-direction: column; transition: opacity .2s ease; }
   /* The leaf that turns: lifted at the spine, its back is the next page. */
-  .leaf { position: absolute; top: 14%; width: 29%; height: 70%; z-index: 2; transform-style: preserve-3d; pointer-events: none; }
-  .leaf .face { position: absolute; inset: 0; width: auto; height: auto; display: flex; flex-direction: column; padding: 1.2cqw 2cqw; background: #F9F5EA; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  /* The leaf that turns is cut from the drawing itself: one half of the
+     spread, spine to outer edge (17.6% to 50%, 50% to 82.4%), 9.5% to 87%
+     tall. Each face holds a full-size copy of the spread, shifted so the
+     right half shows; its back shows the half it lands on. */
+  .leaf { position: absolute; top: 9.5%; width: 32.4%; height: 77.5%; z-index: 2; transform-style: preserve-3d; pointer-events: none; }
+  .leaf .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .leaf .face-back { transform: rotateY(180deg); }
-  .leaf .shade { position: absolute; inset: 0; background: rgba(46,42,38,.16); opacity: 0; pointer-events: none; }
+  .leaf .copy { position: absolute; top: -5.909cqw; width: 100cqw; height: 62.195cqw; }
+  .leaf .copy > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  html[dir="rtl"] .leaf .copy > img { transform: scaleX(-1); }
   .book-stage.is-open .label { opacity: 0; }
   .label { inset-inline-start: 41.4%; top: 63.1%; width: 18.2%; height: 16.2%; align-items: center; justify-content: center; text-align: center; }
   .label b { font-family: var(--hand); font-size: 3.2cqw; line-height: 1.1; }
@@ -972,13 +978,19 @@
       fillText(txt, current - 1);
     }
 
-    // A face of the turning leaf: a copy of a page, filled for stop i.
-    function face(page, i, side) {
-      const el = page.cloneNode(true);
-      el.className = `face face-${side} ${page.classList[1]}`;
-      el.removeAttribute('style');
-      (page === pic ? fillPicture : fillText)(el, i);
-      el.append(Object.assign(document.createElement('i'), { className: 'shade' }));
+    // A face of the turning leaf: the half of the drawing starting at
+    // `start` (% of the width), with a copy of a page filled for stop i.
+    const art = stage.querySelector('.art-open');
+    function face(page, i, side, start) {
+      const el = document.createElement('div');
+      el.className = `face face-${side}`;
+      const copy = document.createElement('div');
+      copy.className = 'copy';
+      copy.style.insetInlineStart = `${-start}cqw`;
+      const words = page.cloneNode(true);
+      (page === pic ? fillPicture : fillText)(words, i);
+      copy.append(art.cloneNode(), words);
+      el.append(copy);
       return el;
     }
 
@@ -998,19 +1010,19 @@
       (lifted === txt ? fillText : fillPicture)(lifted, to - 1);
       leaf = document.createElement('div');
       leaf.className = 'leaf';
-      leaf.style.insetInlineStart = forward ? '52%' : '19%';
-      // Turn around the spine, not the leaf's edge: the pages stop 2% short
-      // of it (19% to 48%, 52% to 81%), which is 2/29 of a leaf width.
-      // The spine is on the leaf's inline-start side going forward.
+      const lift = forward ? 50 : 17.6, land = forward ? 17.6 : 50;
+      leaf.style.insetInlineStart = `${lift}%`;
+      // The leaf's spine edge is its inline-start side going forward.
       const spineLeft = forward !== ar();
-      leaf.style.transformOrigin = spineLeft ? '-6.9% 50%' : '106.9% 50%';
-      leaf.append(face(lifted, from - 1, 'front'), face(under, to - 1, 'back'));
+      leaf.style.transformOrigin = spineLeft ? 'left center' : 'right center';
+      leaf.append(face(lifted, from - 1, 'front', lift), face(under, to - 1, 'back', land));
       const spread = stage.querySelector('.spread');
       spread.style.perspective = `${spread.clientWidth * 2}px`;
       spread.append(leaf);
       const opts = { duration: 750, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards' };
       anim = leaf.animate([{ transform: 'rotateY(0deg)' }, { transform: `rotateY(${spineLeft ? -180 : 180}deg)` }], opts);
-      leaf.querySelectorAll('.shade').forEach((el) => el.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }], opts));
+      // A light shadow as the page stands up.
+      leaf.querySelectorAll('.face').forEach((el) => el.animate([{ filter: 'brightness(1)' }, { filter: 'brightness(.94)' }, { filter: 'brightness(1)' }], opts));
       // Keep the leaf down until the page under it shows the new doodle.
       const mine = leaf;
       anim.onfinish = () => {
