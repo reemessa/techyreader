@@ -541,7 +541,11 @@
   .book-stage.is-open .art-cover, .book-stage:not(.is-open) .art-open,
   .book-stage:not(.is-open) .page { opacity: 0; visibility: hidden; }
   .label, .page { position: absolute; display: flex; flex-direction: column; transition: opacity .2s ease; }
-  .turning :is(.label, .page) { opacity: 0; }
+  /* The leaf that turns: lifted at the spine, its back is the next page. */
+  .leaf { position: absolute; top: 14%; width: 29%; height: 70%; z-index: 2; transform-style: preserve-3d; pointer-events: none; }
+  .leaf .face { position: absolute; inset: 0; width: auto; height: auto; display: flex; flex-direction: column; padding: 1.2cqw 2cqw; background: #F9F5EA; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .leaf .face-back { transform: rotateY(180deg); }
+  .leaf .shade { position: absolute; inset: 0; background: rgba(46,42,38,.16); opacity: 0; pointer-events: none; }
   .book-stage.is-open .label { opacity: 0; }
   .label { inset-inline-start: 41.4%; top: 63.1%; width: 18.2%; height: 16.2%; align-items: center; justify-content: center; text-align: center; }
   .label b { font-family: var(--hand); font-size: 3.2cqw; line-height: 1.1; }
@@ -943,40 +947,87 @@
     const pic = stage.querySelector('.page-picture');
     const txt = stage.querySelector('.page-text');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let stops = [], current = 0, timer = 0;
+    let stops = [], current = 0;
 
     const ar = () => document.documentElement.lang === 'ar';
     const num = (n) => n.toLocaleString(ar() ? 'ar-EG' : 'en-US');
 
+    function fillPicture(el, i) {
+      el.querySelector('.page-when').textContent = stops[i].when;
+      el.querySelector('img').src = `/assets/portfolio/icon-${KINDS[i]}.webp`;
+    }
+
+    function fillText(el, i) {
+      for (const [sel, key] of [['.page-when', 'when'], ['h3', 'title'], ['.page-place', 'place'], ['p', 'line']]) {
+        const part = el.querySelector(sel);
+        part.textContent = stops[i][key] || '';
+        part.hidden = !stops[i][key];
+      }
+      el.querySelector('.page-num').textContent = `${num(i + 1)} / ${num(stops.length)}`;
+    }
+
     function fill() {
       if (!current) return;
-      const stop = stops[current - 1];
-      pic.querySelector('.page-when').textContent = stop.when;
-      pic.querySelector('img').src = `/assets/portfolio/icon-${KINDS[current - 1]}.webp`;
-      for (const [sel, key] of [['.page-when', 'when'], ['h3', 'title'], ['.page-place', 'place'], ['p', 'line']]) {
-        const el = txt.querySelector(sel);
-        el.textContent = stop[key] || '';
-        el.hidden = !stop[key];
-      }
-      txt.querySelector('.page-num').textContent = `${num(current)} / ${num(stops.length)}`;
+      fillPicture(pic, current - 1);
+      fillText(txt, current - 1);
+    }
+
+    // A face of the turning leaf: a copy of a page, filled for stop i.
+    function face(page, i, side) {
+      const el = page.cloneNode(true);
+      el.className = `face face-${side} ${page.classList[1]}`;
+      el.removeAttribute('style');
+      (page === pic ? fillPicture : fillText)(el, i);
+      el.append(Object.assign(document.createElement('i'), { className: 'shade' }));
+      return el;
+    }
+
+    // Forward, the page with the words lifts and lands on the picture page,
+    // its back showing the next picture; backward, the other way round. The
+    // page underneath already shows the stop being turned to.
+    let leaf = null, anim = null;
+    function settle() {
+      if (anim) anim.cancel();
+      if (leaf) leaf.remove();
+      anim = leaf = null;
+    }
+
+    function flip(from, to) {
+      const forward = to > from;
+      const lifted = forward ? txt : pic, under = forward ? pic : txt;
+      (lifted === txt ? fillText : fillPicture)(lifted, to - 1);
+      leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      leaf.style.insetInlineStart = forward ? '52%' : '19%';
+      // The spine is on the leaf's inline-start side going forward.
+      const spineLeft = forward !== ar();
+      leaf.style.transformOrigin = spineLeft ? 'left center' : 'right center';
+      leaf.append(face(lifted, from - 1, 'front'), face(under, to - 1, 'back'));
+      const spread = stage.querySelector('.spread');
+      spread.style.perspective = `${spread.clientWidth * 2}px`;
+      spread.append(leaf);
+      const opts = { duration: 750, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards' };
+      anim = leaf.animate([{ transform: 'rotateY(0deg)' }, { transform: `rotateY(${spineLeft ? -180 : 180}deg)` }], opts);
+      leaf.querySelectorAll('.shade').forEach((el) => el.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }], opts));
+      // Keep the leaf down until the page under it shows the new doodle.
+      const mine = leaf;
+      anim.onfinish = () => {
+        fill();
+        pic.querySelector('img').decode().catch(() => {}).then(() => { if (leaf === mine) settle(); });
+      };
     }
 
     function go(n) {
       n = Math.max(0, Math.min(stops.length, n));
-      const turn = n !== current && current && n && !reduce;
+      settle();
+      const from = current;
       current = n;
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === stops.length;
       years.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(i + 1 === current)));
       stage.classList.toggle('is-open', current > 0);
-      clearTimeout(timer);
-      if (turn) {
-        stage.classList.add('turning');
-        timer = setTimeout(() => { fill(); stage.classList.remove('turning'); }, 200);
-      } else {
-        stage.classList.remove('turning');
-        fill();
-      }
+      if (from && n && n !== from && !reduce) flip(from, n);
+      else fill();
     }
 
     function load() {

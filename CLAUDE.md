@@ -63,7 +63,8 @@ each tool works). Read it before changing anything.
   background made transparent) with the text laid on the pages in HTML.
   It starts closed and pages through the stops, newest first; in Arabic
   the drawings are mirrored. Page boxes are percentages of the drawing,
-  so a new drawing means re-measuring them. No three.js any more.
+  so a new drawing means re-measuring them. A turn is a CSS 3D leaf
+  (`.leaf`) lifted at the spine; its back is the next page. No three.js.
 - Work on the `portfolio` branch and merge to `main` only when asked.
 
 ## Working style
