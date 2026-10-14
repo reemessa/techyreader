@@ -84,6 +84,9 @@ Don't add features, hardening or "nice to have" extras unless asked.
 Newest first. Add a line here when a piece of work is finished, so the
 next session knows where things stand.
 
+- 2026-10-14: Bookstagram card added to "Things I've made", with a
+  Gemini doodle (`assets/portfolio/bookstagram.webp`). Numbers on it
+  (3,200 followers, 1,000+ posts) are from the profile on this date.
 - 2026-10-14: removed the "Systems for the book trade" card from the
   portfolio; `trade.webp` is now unused.
 - 2026-10-12: portfolio doodles are hand-drawn artwork (34eeb7c), made
