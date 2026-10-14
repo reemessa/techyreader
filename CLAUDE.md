@@ -87,7 +87,7 @@ Newest first. Add a line here when a piece of work is finished, so the
 next session knows where things stand.
 
 - 2026-10-14: "My journey" swapped from the three.js book to the drawn
-  Gemini notebook (portfolio branch, not merged yet). `vendor/three`
+  Gemini notebook, live on `main`. `vendor/three`
   deleted; `cover-birds.webp` is now unused.
 - 2026-10-14: design system for the portfolio only, "Techy Reader
   Notebook": https://claude.ai/artifact/L9GrNmEC5TR47Lb7zJgwHA (tokens,
