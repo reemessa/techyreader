@@ -560,7 +560,7 @@
   .page-picture { inset-inline-start: 19%; align-items: center; justify-content: center; gap: 2cqw; text-align: center; }
   .page-picture .page-when { font-family: var(--hand); font-weight: 700; font-size: 5cqw; line-height: 1.1; }
   html:lang(ar) .page-picture .page-when { font-family: var(--body); font-size: 3.4cqw; }
-  .page-picture img { width: 15cqw; height: 15cqw; object-fit: contain; }
+  .page-picture img { width: 15cqw; height: 22cqw; object-fit: contain; }
   .page-text { inset-inline-start: 52%; gap: .6cqw; }
   .page-text .page-when { font-family: var(--hand); color: var(--rose-deep); font-size: 2.3cqw; line-height: 1.2; }
   html:lang(ar) .page-text .page-when { font-family: var(--body); font-weight: 700; font-size: 1.6cqw; }
@@ -893,7 +893,7 @@
   };
 
   // One doodle per stop, in the same order as COPY.*.journey.
-  const KINDS = ['bird', 'study', 'work', 'work', 'work', 'study', 'study'];
+  const KINDS = ['bird', 'grad', 'work', 'work', 'work', 'grad', 'cap'];
 
   function renderJourney(stops) {
     document.querySelector('.journey').replaceChildren(...stops.map((stop, i) => {
