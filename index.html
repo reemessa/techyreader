@@ -999,9 +999,11 @@
       leaf = document.createElement('div');
       leaf.className = 'leaf';
       leaf.style.insetInlineStart = forward ? '52%' : '19%';
+      // Turn around the spine, not the leaf's edge: the pages stop 2% short
+      // of it (19% to 48%, 52% to 81%), which is 2/29 of a leaf width.
       // The spine is on the leaf's inline-start side going forward.
       const spineLeft = forward !== ar();
-      leaf.style.transformOrigin = spineLeft ? 'left center' : 'right center';
+      leaf.style.transformOrigin = spineLeft ? '-6.9% 50%' : '106.9% 50%';
       leaf.append(face(lifted, from - 1, 'front'), face(under, to - 1, 'back'));
       const spread = stage.querySelector('.spread');
       spread.style.perspective = `${spread.clientWidth * 2}px`;
