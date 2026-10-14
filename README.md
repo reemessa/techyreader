@@ -14,6 +14,7 @@ Live at [thetechyreader.com](https://thetechyreader.com), deployed from
 /<tool-name>/index.html   the tool's page — one self-contained file
 /fonts/                   Aref Ruqaa and Cairo, served from this site (OFL)
 /publishers-sw.js         offline copy of /publishers (see below)
+/publishers/map.webp      the fair floor plan the /publishers map shows
 /api/*.js                 Vercel serverless functions
 /schema.sql               the Postgres tables
 /package.json             dependencies (shared across all tools)

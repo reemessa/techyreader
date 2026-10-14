@@ -13,7 +13,7 @@ each tool works). Read it before changing anything.
 |---|---|---|
 | `/one-word` | Type a book title, get back one word that captures it | `api/word.js`, `api/vote.js`, Postgres, Anthropic API |
 | `/publisher-wheel` | Spin a bookshelf, land on a random Arabic publisher | none, the list lives in the page |
-| `/publishers` | Searchable cards of the book-fair publishers and their booths, with a wishlist heart | none; hearts saved in the reader's browser |
+| `/publishers` | Searchable cards of the book-fair publishers and their booths; a zoomable fair map with a pin for any booth and for the wishlist; a wishlist heart with a private note per publisher | none; hearts and notes saved in the reader's browser |
 
 ## Shape of the repo
 
@@ -24,6 +24,8 @@ each tool works). Read it before changing anything.
 - No build step, no framework, no shared CSS. Duplication between tools
   is on purpose.
 - Pushing to `main` deploys to production.
+- The root `index.html` is Reem's portfolio (thetechyreader.com home),
+  not a tool. It has its own rules, below.
 
 ## Rules that are easy to break
 
@@ -43,6 +45,24 @@ each tool works). Read it before changing anything.
 - `/publishers` works offline through `publishers-sw.js` at the repo root.
   Readers see a changed page one visit late, so bump `VERSION` in that
   file whenever a change must reach them.
+- The map pins use `BOOTHS` in `publishers/index.html`: each booth's
+  pixel position on `publishers/map.webp` (1780×2210), measured by hand.
+  A new booth number needs an entry there, and a new map image means
+  re-measuring every booth.
+
+## The portfolio (root `index.html`)
+
+- Bilingual EN/AR with a toggle (`portfolio:lang` in localStorage). All
+  copy lives in the `COPY = { en, ar }` dictionary; change both languages.
+- Its own fonts (Caveat, Lora, Amiri, Aref Ruqaa), self-hosted in `/fonts`.
+  No privacy line in its footer, on purpose. No service worker.
+- The page sits on a torn, ruled notebook sheet (`.pile` / `.sheet`) with
+  two pages stacked behind it, punched holes and a red margin line.
+- "My journey" is a three.js notebook that starts closed and turns pages,
+  newest first. three.js is a trimmed esbuild bundle in
+  `vendor/three/three-journey.min.js`; rebuild it if a new three.js class
+  is needed.
+- Work on the `portfolio` branch and merge to `main` only when asked.
 
 ## Working style
 
@@ -58,3 +78,30 @@ Don't add features, hardening or "nice to have" extras unless asked.
 2. Add a function under `api/` only if it needs a secret or the database,
    and give it its own tables in `schema.sql`.
 3. Add the tool to the table above and to "The tools" in README.md.
+
+## Recent work
+
+Newest first. Add a line here when a piece of work is finished, so the
+next session knows where things stand.
+
+- 2026-10-14: removed the "Systems for the book trade" card from the
+  portfolio; `trade.webp` is now unused.
+- 2026-10-12: portfolio doodles are hand-drawn artwork (34eeb7c), made
+  with Gemini: `assets/portfolio/icon-{bird,study,work}.webp`,
+  `cover-birds.webp` and `trade.webp`, all in the notebook-doodle style.
+
+- 2026-10-11: portfolio at the root, live on `main` (4191f7f). Hero with
+  photo, experience strip, three.js "My journey" book from the LinkedIn
+  profile, project cards, a "work with me" section aimed at business
+  owners, Waraq-style footer, torn notebook paper on a desk background.
+
+- 2026-09-28: `/publishers` wishlist notes. In قائمتي each card has a
+  note box ("اكتب ملاحظة شخصية (تظهر لك فقط)"), saved with ✓ or
+  discarded with ✕, stored under `publishers:notes`. Asked for by a
+  reader. SW `VERSION` is `publishers-v5`.
+- 2026-09-27: `/publishers` map viewer. Full-screen pinch/drag/double-tap
+  map, a gold pin when a card's booth is tapped, heart pins for the
+  wishlist with a قائمتي toggle. A QA test plan was written for it.
+- 2026-09-27: added the fair floor plan (`publishers/map.webp`), cropped
+  and cleaned from page 2 of a phone photo (`C9.pdf`, kept out of the
+  repo on purpose).
