@@ -94,7 +94,7 @@ Don't add features, hardening or "nice to have" extras unless asked.
 Newest first. Add a line here when a piece of work is finished, so the
 next session knows where things stand.
 
-- 2026-11-15: phone fixes on the `portfolio` branch, not merged yet:
+- 2026-11-15: phone fixes, live on `main` (9210c3d):
   Hero B header (name, toggle, menu card) and the spiral-pad journey.
   Mockups: https://claude.ai/artifact/CrK3mQoVZmTXoPkNTGNM3t
 - 2026-10-14: "My journey" swapped from the three.js book to the drawn
