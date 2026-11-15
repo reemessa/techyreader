@@ -645,24 +645,21 @@
     .book-stage .label { left: 26.1%; right: 26%; top: 63.4%; width: auto; height: 18.4%; }
     .label b { font-size: 9cqw; }
     .label span { font-size: 5.5cqw; }
-    /* The words sit on the drawing's ruled lines: one every 40px of the
-       1112px drawing (5.32cqw), the first at y 193 (25.6cqw). Every line
-       of text is one rule high, and the text starts on the fourth rule.
+    /* A blank page (the ruled lines were erased from the drawing): the
+       doodle and date at the top, the words below with room to breathe.
        The date is already big at the top, so it isn't repeated. */
-    .book-stage .page { left: 10%; right: 12%; width: auto; padding: 0; }
-    .book-stage .page-picture { top: 13cqw; height: 28.5cqw; gap: 1cqw; justify-content: flex-start; }
-    .page-picture .page-when { line-height: 1.1; }
-    .page-picture .page-when { font-size: 11cqw; }
+    .book-stage .page { left: 11%; right: 13%; width: auto; padding: 0; }
+    .book-stage .page-picture { top: 15cqw; height: 40cqw; gap: 2cqw; justify-content: flex-start; }
+    .page-picture .page-when { font-size: 10cqw; line-height: 1.1; }
     html:lang(ar) .page-picture .page-when { font-size: 7.5cqw; }
-    .page-picture img { width: 30cqw; height: 16cqw; }
-    .book-stage .page-text { top: 41.56cqw; height: 79.8cqw; gap: 0; }
-    .book-stage .page-text > * { line-height: 5.32cqw; }
+    .page-picture img { width: 34cqw; height: 24cqw; }
+    .book-stage .page-text { top: 59cqw; height: 66cqw; gap: 1.6cqw; }
     .page-text .page-when { display: none; }
-    .page-text h3 { font-size: 6.6cqw; }
-    html:lang(ar) .page-text h3 { font-size: 5.6cqw; line-height: 5.32cqw; }
-    .page-text .page-place { font-size: 4cqw; }
-    .page-text p { font-size: 4cqw; }
-    html:lang(ar) .page-text p { font-size: 4.1cqw; line-height: 5.32cqw; }
+    .page-text h3 { font-size: 7.4cqw; line-height: 1.15; }
+    html:lang(ar) .page-text h3 { font-size: 6cqw; line-height: 1.6; }
+    .page-text .page-place { font-size: 4cqw; line-height: 1.5; }
+    .page-text p { font-size: 4.1cqw; line-height: 1.7; }
+    html:lang(ar) .page-text p { font-size: 4.4cqw; line-height: 1.8; }
     .page-num { font-size: 5cqw; }
     .pad-leaf { position: absolute; inset: 4.77% 0 0; z-index: 2; transform-origin: top center; transform-style: preserve-3d; pointer-events: none; }
     .pad-leaf .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
