@@ -66,6 +66,12 @@ each tool works). Read it before changing anything.
   so a new drawing means re-measuring them. A turn is a CSS 3D leaf
   (`.leaf`) cut from the spread drawing, lifted at the spine; its back is
   the next page. No three.js.
+- On phones (under 640px) "My journey" is a tall spiral pad instead: two
+  more Gemini drawings (`journey-pad-cover.webp`, `journey-pad-page.webp`,
+  same 754x1112 canvas, background made transparent), one page per stop,
+  flipping up over the spiral (`padFlip`). Phones also get a short header:
+  the name in one script, the toggle and a "menu" button; no greeting
+  above the headline.
 - Work on the `portfolio` branch and merge to `main` only when asked.
 
 ## Working style
@@ -88,6 +94,9 @@ Don't add features, hardening or "nice to have" extras unless asked.
 Newest first. Add a line here when a piece of work is finished, so the
 next session knows where things stand.
 
+- 2026-11-15: phone fixes on the `portfolio` branch, not merged yet:
+  Hero B header (name, toggle, menu card) and the spiral-pad journey.
+  Mockups: https://claude.ai/artifact/CrK3mQoVZmTXoPkNTGNM3t
 - 2026-10-14: "My journey" swapped from the three.js book to the drawn
   Gemini notebook, live on `main`. `vendor/three`
   deleted; `cover-birds.webp` is now unused.

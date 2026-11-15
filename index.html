@@ -274,6 +274,8 @@
   html:lang(ar) .brand-small { font-size: .95rem; letter-spacing: .04em; }
   .brand-sub { font-family: var(--hand); color: var(--rose-deep); font-size: 1.4rem; transform: rotate(-2deg); margin-inline-start: 10px; }
   html:lang(ar) .brand-sub { font-size: 1.15rem; }
+  .nav nav { display: flex; align-items: center; gap: 6px 20px; }
+  .menu-btn { display: none; }
   .nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; }
   .nav ul a { color: var(--ink); text-decoration: none; font-family: var(--hand); font-size: 1.45rem; }
   html:lang(ar) .nav ul a { font-size: 1.2rem; }
@@ -308,6 +310,53 @@
   }
   .lang-toggle [lang="ar"] { font-family: 'Amiri', serif; font-size: 1.15rem; }
   .lang-toggle .on { font-weight: 700; }
+
+  /* Phones: the name alone, the toggle and a menu button; the links open
+     on a card under it. No greeting above the headline. */
+  @media (max-width: 759px) {
+    .nav .wrap { position: relative; flex-wrap: nowrap; }
+    .nav :is(.brand-small, .brand-sub), .hero .note { display: none; }
+    .nav nav { gap: 8px; }
+    .lang-toggle { padding-inline: 12px; min-height: 44px; }
+    .menu-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 2px 12px;
+      font-family: var(--hand);
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--ink);
+      background: var(--rose);
+      border: 2px solid var(--ink);
+      border-radius: var(--wobble-2);
+      cursor: pointer;
+    }
+    html:lang(ar) .menu-btn { font-size: 1.05rem; }
+    .nav ul {
+      display: none;
+      position: absolute;
+      top: 100%;
+      inset-inline-end: 20px;
+      z-index: 5;
+      width: 200px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 12px 20px;
+      background: var(--card);
+      border: 2px solid var(--ink);
+      border-radius: var(--wobble);
+      box-shadow: var(--shadow);
+      transform: rotate(-1deg);
+    }
+    .nav.open ul { display: flex; }
+    .nav ul li + li { border-block-start: 1.5px dashed rgba(46,42,38,.3); }
+    .nav ul a { display: block; padding-block: 6px; }
+    .actions { gap: 12px; }
+    .actions .btn { padding-inline: 16px; font-size: 1.35rem; }
+  }
 
   /* Hero */
   .hero { display: grid; gap: 28px; align-items: center; padding-block: 36px 56px; }
@@ -580,12 +629,43 @@
   .chip[aria-pressed="true"] { background: var(--rose); }
   /* While the book is shown, the cards stay in the page for screen readers only. */
   .has-book .journey { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  /* Phones see one page: the drawing is zoomed so a box 36% wide and 86%
-     tall fills the stage, on the cover or on the page with the words. */
+  /* Phones see a tall spiral pad instead: two more Gemini drawings
+     (journey-pad-cover.webp, journey-pad-page.webp, same 754x1112 canvas),
+     one page per stop with the doodle above the words. A page flips up
+     over the spiral, hinged at the page's top edge (y 53 of 1112). Boxes
+     are percentages of the pad drawing; sizes are cqw of its width. */
+  .spread > .pad-cover, .spread > .pad-page { display: none; }
   @media (max-width: 639px) {
-    .book-stage { aspect-ratio: 1312 / 1949; }
-    .spread { inset: auto; top: -10.47%; width: 277.8%; height: 116.3%; inset-inline-start: -88.9%; transition: inset-inline-start .35s ease; }
-    .book-stage.is-open .spread { inset-inline-start: -134.7%; }
+    .book { overflow-x: clip; }
+    .book-stage { aspect-ratio: 754 / 1112; overflow: visible; }
+    .spread > .art-cover, .spread > .art-open { display: none; }
+    .spread > .pad-cover, .spread > .pad-page { display: block; }
+    html[dir="rtl"] .spread img:is(.pad-cover, .pad-page) { transform: none; }
+    .book-stage.is-open > .spread > .pad-cover, .book-stage:not(.is-open) > .spread > .pad-page { opacity: 0; visibility: hidden; }
+    .book-stage .label { left: 26.1%; right: 26%; top: 63.4%; width: auto; height: 18.4%; }
+    .label b { font-size: 9cqw; }
+    .label span { font-size: 5.5cqw; }
+    .book-stage .page { left: 10%; right: 12%; width: auto; padding: 0; }
+    .book-stage .page-picture { top: 9%; height: 30%; gap: 1.5cqw; }
+    .page-picture .page-when { font-size: 11cqw; }
+    html:lang(ar) .page-picture .page-when { font-size: 7.5cqw; }
+    .page-picture img { width: 30cqw; height: 28cqw; }
+    .book-stage .page-text { top: 41%; height: 47%; gap: 1cqw; }
+    .page-text .page-when { font-size: 5.5cqw; }
+    html:lang(ar) .page-text .page-when { font-size: 4.2cqw; }
+    .page-text h3 { font-size: 8cqw; }
+    html:lang(ar) .page-text h3 { font-size: 6.5cqw; }
+    .page-text .page-place { font-size: 4cqw; }
+    .page-text p { font-size: 4cqw; line-height: 1.6; }
+    html:lang(ar) .page-text p { font-size: 4.4cqw; }
+    .page-num { font-size: 5cqw; }
+    .pad-leaf { position: absolute; inset: 4.77% 0 0; z-index: 2; transform-origin: top center; transform-style: preserve-3d; pointer-events: none; }
+    .pad-leaf .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    /* The back of the sheet, seen as it goes over the spiral. */
+    .pad-leaf .face-back { inset: 0 5.3% 10.5% 2.6%; transform: rotateX(180deg); background: #F3EAD3; border: 2px solid var(--ink); border-radius: 3px 3px 8px 6px; }
+    .pad-leaf .copy { position: absolute; top: -7.03cqw; left: 0; width: 100cqw; height: 147.48cqw; }
+    .pad-leaf .copy > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .book-stage .pad-leaf :is(.page, .label) { opacity: 1; visibility: visible; }
   }
   @media (prefers-reduced-motion: reduce) {
     .spread, .spread > img, .label, .page { transition: none; }
@@ -616,13 +696,17 @@
       <span class="brand-sub" data-i18n="brandSub"></span>
     </a>
     <nav>
-      <ul>
+      <ul id="nav-links">
         <li><a href="#journey" data-i18n="journeyNav"></a></li>
         <li><a href="#work" data-i18n="navWork"></a></li>
         <li><a href="#apps" data-i18n="navApps"></a></li>
         <li><a href="#hire" data-i18n="navHire"></a></li>
-        <li><button type="button" class="lang-toggle" dir="ltr"><span lang="en">EN</span> | <span lang="ar">ع</span></button></li>
       </ul>
+      <button type="button" class="lang-toggle" dir="ltr"><span lang="en">EN</span> | <span lang="ar">ع</span></button>
+      <button type="button" class="menu-btn" aria-expanded="false" aria-controls="nav-links">
+        <svg width="20" height="16" viewBox="0 0 20 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3c5-1 11 1 16-.5"/><path d="M2 8.2c6 .6 10-.8 16 .2"/><path d="M2 13.5c4-.6 11 .8 16-.4"/></svg>
+        <span data-i18n="navMenu"></span>
+      </button>
     </nav>
   </div>
 </header>
@@ -661,6 +745,8 @@
         <div class="spread">
           <img class="art-cover" src="/assets/portfolio/journey-cover.webp" alt="" width="1312" height="816">
           <img class="art-open" src="/assets/portfolio/journey-spread.webp" alt="" width="1312" height="816">
+          <img class="pad-cover" src="/assets/portfolio/journey-pad-cover.webp" alt="" width="754" height="1112">
+          <img class="pad-page" src="/assets/portfolio/journey-pad-page.webp" alt="" width="754" height="1112">
           <div class="label"><b data-i18n="journeyTitle"></b><span data-i18n="journeyNote"></span></div>
           <div class="page page-picture"><span class="page-when"></span><img alt=""></div>
           <div class="page page-text"><span class="page-when"></span><h3></h3><span class="page-place"></span><p></p><span class="page-num"></span></div>
@@ -773,6 +859,8 @@
       journeyNote: '(so far)',
       journeyNewer: '← newer',
       journeyOlder: 'older →',
+      journeyNewerPad: '↑ newer',
+      journeyOlderPad: 'older ↓',
       journeyYears: 'Jump to a year',
       journey: [
         { when: 'now', title: 'The techy reader', line: 'Waraq and small apps for readers.' },
@@ -786,6 +874,7 @@
       navWork: 'Work',
       navApps: 'Reader apps',
       navHire: 'Work with me',
+      navMenu: 'menu',
       toggle: 'Switch to Arabic',
       heroNote: 'hello, reader! I\'m Reem, the techy reader',
       heroTitle: 'I build tools for people who read.',
@@ -836,6 +925,8 @@
       journeyNote: '(حتى الآن)',
       journeyNewer: '→ الأحدث',
       journeyOlder: 'الأقدم ←',
+      journeyNewerPad: '↑ الأحدث',
+      journeyOlderPad: 'الأقدم ↓',
       journeyYears: 'انتقل إلى سنة',
       journey: [
         { when: 'الآن', title: 'القارئة التقنية', line: '«ورق» وتطبيقات صغيرة للقرّاء.' },
@@ -849,6 +940,7 @@
       navWork: 'أعمالي',
       navApps: 'تطبيقات القرّاء',
       navHire: 'لنعمل معاً',
+      navMenu: 'القائمة',
       toggle: 'التبديل إلى الإنجليزية',
       heroNote: 'أهلاً أيها القارئ! أنا ريم، القارئة التقنية',
       heroTitle: 'أصنع أدوات لمن يقرأ',
@@ -933,6 +1025,16 @@
   }
   setLang(lang);
 
+  // Phones: the menu button opens the links; picking one closes them.
+  const nav = document.querySelector('header.nav');
+  const menuBtn = nav.querySelector('.menu-btn');
+  function setMenu(open) {
+    nav.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+  }
+  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('open')));
+  nav.querySelectorAll('#nav-links a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
+
   toggle.addEventListener('click', () => {
     lang = lang === 'ar' ? 'en' : 'ar';
     setLang(lang);
@@ -953,6 +1055,7 @@
     const pic = stage.querySelector('.page-picture');
     const txt = stage.querySelector('.page-text');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const phone = matchMedia('(max-width: 639px)');
     let stops = [], current = 0;
 
     const ar = () => document.documentElement.lang === 'ar';
@@ -1031,6 +1134,57 @@
       };
     }
 
+    // Phones: the pad's top page flips up over the spiral (older) or back
+    // down (newer). The leaf is a copy of the drawing below the hinge,
+    // showing the cover or a stop; going newer, the page under it keeps
+    // showing the old stop until it lands.
+    function padFlip(from, to) {
+      const forward = to > from, shown = forward ? from : to;
+      const copy = document.createElement('div');
+      copy.className = 'copy';
+      if (shown === 0) {
+        copy.append(stage.querySelector('.pad-cover').cloneNode(), stage.querySelector('.label').cloneNode(true));
+      } else {
+        copy.append(stage.querySelector('.pad-page').cloneNode());
+        for (const page of [pic, txt]) {
+          const words = page.cloneNode(true);
+          (page === pic ? fillPicture : fillText)(words, shown - 1);
+          copy.append(words);
+        }
+      }
+      leaf = document.createElement('div');
+      leaf.className = 'pad-leaf';
+      const front = document.createElement('div'), back = document.createElement('div');
+      front.className = 'face';
+      back.className = 'face face-back';
+      front.append(copy);
+      leaf.append(front, back);
+      const spread = stage.querySelector('.spread');
+      spread.style.perspective = `${spread.clientWidth * 5}px`;
+      spread.append(leaf);
+      if (forward) fill();
+      else if (to === 0) stage.classList.add('is-open');
+      // Over the spiral and away: its back fades once it has passed upright.
+      // (Fading the leaf itself would flatten it and show the front through.)
+      const opts = { duration: 700, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards', direction: forward ? 'normal' : 'reverse' };
+      anim = leaf.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(170deg)' }], opts);
+      back.animate([{ opacity: 1 }, { opacity: 1, offset: .6 }, { opacity: 0 }], opts);
+      const mine = leaf;
+      anim.onfinish = () => {
+        if (leaf !== mine) return;
+        stage.classList.toggle('is-open', current > 0);
+        fill();
+        settle();
+      };
+    }
+
+    function labels() {
+      const t = COPY[document.documentElement.lang];
+      prevBtn.textContent = phone.matches ? t.journeyNewerPad : t.journeyNewer;
+      nextBtn.textContent = phone.matches ? t.journeyOlderPad : t.journeyOlder;
+    }
+    phone.addEventListener('change', labels);
+
     function go(n) {
       n = Math.max(0, Math.min(stops.length, n));
       settle();
@@ -1040,7 +1194,8 @@
       nextBtn.disabled = current === stops.length;
       years.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(i + 1 === current)));
       stage.classList.toggle('is-open', current > 0);
-      if (from && n && n !== from && !reduce) flip(from, n);
+      if (n !== from && !reduce && phone.matches) padFlip(from, n);
+      else if (from && n && n !== from && !reduce) flip(from, n);
       else fill();
     }
 
@@ -1054,6 +1209,7 @@
         b.addEventListener('click', () => go(i + 1));
         return b;
       }));
+      labels();
       go(current);
     }
 
